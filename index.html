@@ -666,7 +666,6 @@ const UNITS=[
  {id:"u_idai",name:"医大前",sn:"医大",office:"terrace"},
  {id:"u_naga6",name:"永山6条",sn:"永6",office:"home"},
  {id:"u_sue6",name:"末広6条",sn:"末6",office:"home"},
- {id:"u_kamui3",name:"神居3条",sn:"神3",office:"home",closed:true}, /* HARP 2026-08閉所。選択肢から除外し、所属職員は兼務先へ応援 */
  {id:"u_sue3a",name:"末広3条Ⅰ",sn:"末Ⅰ",office:"home"},
  {id:"u_sue3b",name:"末広3条Ⅱ",sn:"末Ⅱ",office:"home"},
  {id:"u_sue1",name:"末広1条",sn:"末1",office:"home"}];
@@ -689,11 +688,11 @@ const STAFF_SEED=[
  {id:"n08",name:"林 しおり",office:"terrace",unit:"u_idai",roles:["世話人","夜間支援従事者"],employ:"常勤兼務",qual:"介護福祉士",admin:false,help:[]},
  {id:"n09",name:"松尾 眞由美",office:"terrace",unit:"u_idai",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:[]},
  {id:"n10",name:"松浦 佐緒里",office:"terrace",unit:"u_idai",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:[]},
- {id:"n11",name:"松浦 直樹",office:"home",unit:"u_sue3a",roles:["管理者","サービス管理責任者","夜間支援従事者"],employ:"常勤兼務",qual:"介護福祉士",admin:true,help:["u_naga6","u_sue6","u_kamui3","u_sue3b","u_sue1"]},
+ {id:"n11",name:"松浦 直樹",office:"home",unit:"u_sue3a",roles:["管理者","サービス管理責任者","夜間支援従事者"],employ:"常勤兼務",qual:"介護福祉士",admin:true,help:["u_naga6","u_sue6","u_sue3b","u_sue1"]},
  {id:"n12",name:"高 朋恵",office:"home",unit:"u_naga6",roles:["世話人","生活支援員"],employ:"常勤兼務",qual:"",admin:false,help:[]},
  {id:"n13",name:"岩橋 友美",office:"home",unit:"u_naga6",roles:["世話人","生活支援員"],employ:"常勤兼務",qual:"",admin:false,help:["u_sue3a","u_sue3b"]},
  {id:"n14",name:"岩井 有子",office:"home",unit:"u_naga6",roles:["世話人","生活支援員"],employ:"常勤兼務",qual:"",admin:false,help:["u_sue6","u_sue3b"]},
- {id:"n15",name:"三橋 亮大",office:"home",unit:"u_kamui3",roles:["世話人","生活支援員","夜間支援従事者"],employ:"常勤兼務",qual:"",admin:false,help:["u_naga6","u_sue1","u_sue3a","u_sue3b"]},
+ {id:"n15",name:"三橋 亮大",office:"home",unit:"u_naga6",roles:["世話人","生活支援員","夜間支援従事者"],employ:"常勤兼務",qual:"",admin:false,help:["u_sue1","u_sue3a","u_sue3b"]}, /* 神居3条閉所により永山6条へ */
  {id:"n16",name:"飯森 亜有美",office:"home",unit:"u_naga6",roles:["夜間支援従事者"],employ:"非常勤専従",qual:"",admin:false,wishMode:"work",help:["u_naga1"]},
  {id:"n17",name:"佐藤 栄美子",office:"home",unit:"u_naga6",roles:["夜間支援従事者"],employ:"非常勤専従",qual:"",admin:false,wishMode:"work",help:["u_naga1"]},
  {id:"n18",name:"生江 まどか",office:"home",unit:"u_naga6",roles:["夜間支援従事者"],employ:"非常勤専従",qual:"",admin:false,wishMode:"work",help:[]},
@@ -704,12 +703,12 @@ const STAFF_SEED=[
  {id:"n23",name:"小川 美佐子",office:"home",unit:"u_sue6",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:["u_sue3b"]},
  {id:"n24",name:"小島 貴雅",office:"home",unit:"u_sue6",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:["u_sue1","u_sue3a"]},
  {id:"n25",name:"松浦 友和",office:"home",unit:"u_sue6",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:["u_sue3a"]},
- {id:"n26",name:"松浦 博之",office:"home",unit:"u_sue6",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:["u_kamui3","u_sue1","u_sue3a"]},
- {id:"n27",name:"葛西 宏美",office:"home",unit:"u_kamui3",roles:["世話人","生活支援員"],employ:"常勤兼務",qual:"介護福祉士",admin:true,help:["u_sue6","u_sue3a"]},
- {id:"n28",name:"小林 寿史",office:"home",unit:"u_kamui3",roles:["世話人","生活支援員"],employ:"常勤兼務",qual:"",admin:false,help:["u_sue6","u_sue1","u_sue3a","u_sue3b"]},
- {id:"n29",name:"下村 浩基",office:"home",unit:"u_kamui3",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:["u_sue1","u_naga1"]},
- {id:"n30",name:"金内 愛弓",office:"home",unit:"u_kamui3",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:["u_sue1","u_sue3b"]},
- {id:"n31",name:"松尾 裕樹",office:"home",unit:"u_kamui3",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:["u_sue6"]},
+ {id:"n26",name:"松浦 博之",office:"home",unit:"u_sue6",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:["u_sue1","u_sue3a"]},
+ {id:"n27",name:"葛西 宏美",office:"home",unit:"u_sue6",roles:["世話人","生活支援員"],employ:"常勤兼務",qual:"介護福祉士",admin:true,help:["u_sue3a"]}, /* 神居3条閉所により末広6条へ */
+ {id:"n28",name:"小林 寿史",office:"home",unit:"u_sue6",roles:["世話人","生活支援員"],employ:"常勤兼務",qual:"",admin:false,help:["u_sue1","u_sue3a","u_sue3b"]}, /* 神居3条閉所により末広6条へ */
+ {id:"n29",name:"下村 浩基",office:"home",unit:"u_sue1",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:["u_naga1"]}, /* 神居3条閉所により末広1条へ */
+ {id:"n30",name:"金内 愛弓",office:"home",unit:"u_sue1",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:["u_sue3b"]}, /* 神居3条閉所により末広1条へ */
+ {id:"n31",name:"松尾 裕樹",office:"home",unit:"u_sue6",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:[]}, /* 神居3条閉所により末広6条へ */
  {id:"n32",name:"渡邊 慶太",office:"home",unit:"u_sue1",roles:["世話人","生活支援員"],employ:"常勤兼務",qual:"介護福祉士",admin:false,help:[]},
  {id:"n33",name:"鈴木 都子",office:"home",unit:"u_sue1",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:[]},
  {id:"n34",name:"川田 明",office:"home",unit:"u_sue1",roles:["夜間支援従事者"],employ:"非常勤兼務",qual:"",admin:false,wishMode:"work",help:["u_sue3b"]},
@@ -748,7 +747,7 @@ function unitShort(id){const u=UNITS.find(x=>x.id===id);return u?(u.sn||u.name.s
 function unitOffice(id){const u=UNITS.find(x=>x.id===id);return u?u.office:""}
 function officeUnits(oid){return UNITS.filter(u=>u.office===oid&&!u.closed)} /* 閉所建物は全選択肢から除外 */
 function getStaff(){let s=store.get("staff",null);
-  if(!s||!Array.isArray(s)||!s.length||!s[0].unit||!s.some(x=>x.id==="n36")||((s.find(x=>x.id==="n27")||{}).roles||[]).indexOf("管理者")>=0||!s[0].roles||s[0].help===undefined||(((s.find(x=>x.id==="n29")||{}).help)||[]).indexOf("u_naga1")<0){
+  if(!s||!Array.isArray(s)||!s.length||!s[0].unit||!s.some(x=>x.id==="n36")||((s.find(x=>x.id==="n27")||{}).roles||[]).indexOf("管理者")>=0||!s[0].roles||s[0].help===undefined||(((s.find(x=>x.id==="n29")||{}).help)||[]).indexOf("u_naga1")<0||(s.find(x=>x.id==="n15")||{}).unit==="u_kamui3"){
     s=STAFF_SEED.map(x=>Object.assign({},x));store.set("staff",s)}return s}
 function isWorkWish(s){return s&&s.wishMode==="work"} /* 勤務可能日を提出するタイプ */
 /* 勤務の傾向（自動作成の事前設定。管理者がシフト作成グリッドの職員欄で設定） */
@@ -1507,13 +1506,21 @@ function renderDelLog(){const ids=activeStaff().map(s=>s.id);
     :'<div class="empty" style="border:1px solid var(--line);border-radius:14px">削除の記録はまだありません。</div>'}
 
 function renderRoster(){const staff=getStaff();let html="";
-  activeOffices().forEach(o=>{const list=officeStaff(o.id);if(!list.length)return;
-    html+=`<div class="grouphd">${o.name}（${list.length}名）</div>`;
+  activeOffices().forEach(o=>{const list=officeStaff(o.id);
+    const guests=staff.filter(x=>x.office!==o.id&&(x.help||[]).some(uid=>officeUnits(o.id).some(u=>u.id===uid)));
+    if(!list.length&&!guests.length)return;
+    html+=`<div class="grouphd">${o.name}（${list.length}名${guests.length?"＋兼務"+guests.length+"名":""}）</div>`;
     html+=list.map(s=>`<div class="adm-row"><span class="ava ${s.admin?'adm':''}" style="width:34px;height:34px;font-size:13px">${initial(s.name)}</span>
       <span style="min-width:0"><div class="nm">${s.name}${s.admin?'<span class="adm-badge">管理者権限</span>':''}</div>
       <div class="rl">${unitName(s.unit)} ・ ${roleStr(s)} ・ ${s.employ||''}${s.qual?' ・ '+s.qual:''}${isWorkWish(s)?' ・ <span style="color:var(--work);font-weight:700">勤務可提出型</span>':''}</div>
       ${(s.pref||helpUnitsOf(s).length)?`<div class="rl" style="color:var(--admin);font-weight:700">⚙ ${[s.pref?"傾向: "+PREF_LABEL[s.pref]:null,helpUnitsOf(s).length?"兼務可: "+helpUnitsOf(s).map(unitShort).join("・"):null].filter(Boolean).join("　")}</div>`:''}</span>
-      <button class="go" onclick="openStaff('${s.id}')">編集</button></div>`).join("")});
+      <button class="go" onclick="openStaff('${s.id}')">編集</button></div>`).join("");
+    if(guests.length){
+      html+=`<div class="grouphd" style="font-size:11px;opacity:.85">🤝 兼務（他事業所の所属で、この事業所の建物に入れる職員）</div>`;
+      html+=guests.map(s=>`<div class="adm-row" style="opacity:.9"><span class="ava" style="width:34px;height:34px;font-size:13px">${initial(s.name)}</span>
+        <span style="min-width:0"><div class="nm">${s.name}<span class="badge-e" style="color:var(--help);background:var(--help-bg)">兼務</span></div>
+        <div class="rl">本務: ${officeName(s.office)}・${unitName(s.unit)} ／ 入れる建物: ${(s.help||[]).filter(uid=>unitOffice(uid)===o.id).map(unitShort).join("・")}</div></span>
+        <button class="go" onclick="openStaff('${s.id}')">編集</button></div>`).join("")}});
   document.getElementById("rosterList").innerHTML=html}
 function fillOfficeSelect(sel){sel.innerHTML=activeOffices().map(o=>`<option value="${o.id}">${o.name}</option>`).join("")}
 function fillUnitSelect(){const oid=document.getElementById("stOffice").value;
@@ -1770,6 +1777,7 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
   // 空き判定: mode0=公休予定日も避ける / mode1=公休予定日を使ってよい / mode2=上限超過も許す
   // 連勤の絶対制限: 前後をつなげて5連勤を超える割り当ては行わない（埋まらない分は警告として見せる）
   const avail=(s,d,m,grp)=>free(s,d)&&avOK(s,d,grp)&&prefOK(s,grp)&&runIf(s,d)<=5
+    &&(grp==="night"||m>=2||!(d>1&&B[s.id][d-2].k==="夜勤")) // 夜勤明けの翌日は日中に入れない（どうしても埋まらない時だけ許す）
     &&(manCap(s)?hours[s.id]+(grp==="night"?kindH("夜勤",s):8)<=manCap(s) // 上限入力あり=絶対に超えない
                 :((m>=2&&!guestIds.has(s.id))||hours[s.id]<capH(s))) // 兼務者は常に上限内で
 
@@ -1784,20 +1792,33 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
     if(p==="balance"){const diff=nH[s.id]-dH[s.id];           // バランス: 少ない方の勤務を優先
       return grp==="night"?(diff>0?1:-0.5):(diff<0?1:-0.5)}
     return 0};
-  // 夜勤はなるべく連続させない: 前日・翌日が夜勤の人は避ける（他に候補がいなければ許す）
-  const nightAdj=(s,d)=>((d>1&&B[s.id][d-2].k==="夜勤")?1:0)+((d<mi.days&&B[s.id][d].k==="夜勤")?1:0);
+  // 夜勤はなるべく連続させない＋夜勤明けの翌日に日中がある人も避ける（朝5時退勤→翌6時出勤を防ぐ）
+  const nightAdj=(s,d)=>((d>1&&B[s.id][d-2].k==="夜勤")?1:0)+((d<mi.days&&B[s.id][d].k==="夜勤")?1:0)
+    +((d<mi.days&&WORKING(B[s.id][d].k)&&B[s.id][d].k!=="夜勤")?2:0);
+  // 夜勤明けの翌日はなるべく休み: 朝5時退勤→翌朝6時出勤を防ぐ（他に候補がいなければ許す）
+  const afterNight=(s,d)=>(d>1&&B[s.id][d-2].k==="夜勤")?1:0;
   const pickM=(pool,d,m,grp)=>pool.filter(s=>avail(s,d,m,grp||"day"))
     .sort((a,b)=>{
       const pp=prefPen(a,grp||"day")-prefPen(b,grp||"day");  // 第0キー: 勤務の傾向（事前設定）
       if(pp)return pp;
       if(grp==="night"){const na=nightAdj(a,d)-nightAdj(b,d);if(na)return na} // 夜勤の連続回避
+      else{const an=afterNight(a,d)-afterNight(b,d);if(an)return an} // 夜勤明けの翌日に日中を入れない
       const ra=runLen(a,d)-runLen(b,d); // 極力連勤しない: 連勤日数が少ない人を最優先
       if(ra)return ra;
       return hours[a.id]/capH(a)-hours[b.id]/capH(b)})[0];
-  // 2) 日中の配置：各建物・各日に1名（平日=日勤・土日=通し）。
-  //    常勤（正社員）を最優先、足りない分を非常勤パートで。管理者・サビ管は最後の手段。
+  // 2) 日中と夜勤を「日ごと」に交互配置：前日の夜勤を確定してから、当日の日中を決める。
+  //    夜勤明け（朝5時退勤）の翌日は日中に入れない（どうしても埋まらない時だけ最終手段として許可）。
+  //    日中=各建物1名（平日=日勤・土日=通し）。建物内の常勤→パート→他建物ヘルプ→管理職。
+  //    夜勤=①建物内の夜勤専門→②他建物・他事業所の夜勤専門（兼務登録者）→③建物内自動兼務→④他建物→⑤管理職。
   const dayPool=ALL.filter(s=>!(hasRole(s,"夜間支援従事者")&&rolesOf(s).length===1));
   const FT=p=>p.filter(isFulltime),PT=p=>p.filter(s=>!isFulltime(s));
+  const nightStaff=ALL.filter(s=>hasRole(s,"夜間支援従事者"));
+  const nsAvail=nightStaff.filter(isWorkWish);
+  const nsReg=nightStaff.filter(s=>!isWorkWish(s));
+  const ftOther=ALL.filter(s=>isFulltime(s)&&!hasRole(s,"夜間支援従事者"));
+  const ptAll=ALL.filter(s=>!isFulltime(s)&&!hasRole(s,"夜間支援従事者"));
+  const own=(p,u)=>p.filter(s=>s.unit===u.id),oth=(p,u)=>p.filter(s=>s.unit!==u.id&&canHelpAt(s,u.id));
+  const hasN=(u,d)=>ALL.some(s=>B[s.id][d-1].k==="夜勤"&&B[s.id][d-1].w===u.id);
   for(let d=1;d<=mi.days;d++){
     const reqK=reqKindOf(d);
     units.forEach(u=>{
@@ -1814,19 +1835,9 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
         for(const p of seq){cand=pickM(p,d,m);if(cand)break}}
       // 第3段: どうしても足りない時だけ管理者・サビ管を投入
       for(let m=0;m<3&&!cand;m++){cand=pickM(mgrOf(own),d,m)||pickM(mgrOf(other),d,m)}
-      if(cand)setCell(cand,d,reqK,u.id)})}
-  // 3) 夜勤：毎日「各建物（拠点）に1名」。優先順位は
-  //    その拠点の勤務可提出パート → 他拠点の勤務可パート → 夜間支援従事者 →
-  //    常勤の余り(自動兼務・拠点所属優先) → 非常勤で穴埋め
-  const nightStaff=ALL.filter(s=>hasRole(s,"夜間支援従事者"));
-  if(nightStaff.length){
-    const nsAvail=nightStaff.filter(isWorkWish);
-    const nsReg=nightStaff.filter(s=>!isWorkWish(s));
-    const ftOther=ALL.filter(s=>isFulltime(s)&&!hasRole(s,"夜間支援従事者"));
-    const ptAll=ALL.filter(s=>!isFulltime(s)&&!hasRole(s,"夜間支援従事者"));
-    const own=(p,u)=>p.filter(s=>s.unit===u.id),oth=(p,u)=>p.filter(s=>s.unit!==u.id&&canHelpAt(s,u.id));
-    const hasN=(u,d)=>ALL.some(s=>B[s.id][d-1].k==="夜勤"&&B[s.id][d-1].w===u.id);
-    for(let d=1;d<=mi.days;d++){
+      if(cand)setCell(cand,d,reqK,u.id)});
+
+    if(nightStaff.length){
       // 第1段: 建物内の夜勤専門職員（通常型→勤務可提出）
       units.forEach(u=>{
         if(hasN(u,d))return;
@@ -1861,7 +1872,28 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
         const mgrs=staffL.filter(s=>isMgr(s)&&isFulltime(s));
         let c=null;
         for(let m=0;m<3&&!c;m++){c=pickM(own(mgrs,u),d,m,"night")||pickM(oth(mgrs,u),d,m,"night")}
-        if(c)setCell(c,d,"夜勤",u.id)})}}   // 置けない拠点・日は空けたまま→警告表示
+        if(c)setCell(c,d,"夜勤",u.id)});
+    }
+  }
+  // 3.2) 夜勤明けの翌日に日中勤務が入っている場合、可能なら他の職員に振り替えて休みにする
+  //      （朝5時退勤→翌朝6時出勤を防ぐ。代わりが見つからない日はそのまま＝どうしても必要な時だけ残る）
+  for(let d=1;d<mi.days;d++){
+    ALL.forEach(s=>{
+      if(B[s.id][d-1].k!=="夜勤")return;
+      const nx=B[s.id][d];                          // 翌日(d+1)のマス
+      if(!WORKING(nx.k)||nx.k==="夜勤")return;
+      if(!inUnits(nx.w))return; // 他事業所の勤務（保存済みの兼務先）はこの事業所からは動かさない
+      if(mw[s.id]&&mw[s.id][d+1]&&mw[s.id][d+1].type!=="off")return; // 必ず出勤の日は動かさない
+      const uid=nx.w;const kk=nx.k;
+      const pool=nonMgr(dayPool.filter(x=>x.id!==s.id&&(x.unit===uid||canHelpAt(x,uid))));
+      let cand=null;
+      for(let m=0;m<2&&!cand;m++)
+        cand=pickM(pool.filter(x=>x.unit===uid),d+1,m)||pickM(pool.filter(x=>x.unit!==uid),d+1,m);
+      if(cand){
+        const hh=kindH(kk,s);
+        B[s.id][d]={k:"休",w:s.unit};hours[s.id]-=hh;dH[s.id]-=hh;
+        setCell(cand,d+1,kk,uid);
+        if(window.__rep)window.__rep.push({day:d+1,from:s.name,to:cand.name,k:kk,u:uid})}})}
   // 3.5) 世話人または生活支援員のどちらかが、毎日1名以上勤務するようにする（管理職は最後の手段）
   {const careOK=s=>hasRole(s,"世話人")||hasRole(s,"生活支援員");
    const pool=nonMgr(dayPool.filter(s=>careOK(s)&&!guestIds.has(s.id)));
@@ -1884,7 +1916,9 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
         if(!free(s,d))continue;
         const r=runIf(s,d);
         if(r>5)continue;
-        const score=(plannedRest[s.id].has(d)?100:0)+r*10;
+        const score=(plannedRest[s.id].has(d)?100:0)+r*10
+        +((d>1&&B[s.id][d-2].k==="夜勤")?200:0)   // 夜勤明けの翌日は最後の手段（朝5時退勤→6時出勤を防ぐ）
+        +((d<mi.days&&B[s.id][d].k==="夜勤")?50:0); // 翌日が夜勤の日も避けめに
         if(score<bestScore){bestScore=score;best=d}}
       if(best===null)break;   // 連勤制限内で足せる日が無い→不足は警告に出る
       setCell(s,best,reqKindOf(best))}});
