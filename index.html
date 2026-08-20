@@ -12,13 +12,13 @@
     --f:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
   }
   @media (prefers-color-scheme:dark){
-    :root{--ground:#12160F;--card:#1B211A;--ink:#EAF0E7;--sub:#9DAAA2;--line:#2C332A;--line2:#3A4237;
+    :root{--ground:#12160F;--card:#1B211A;--ink:#EAF0E7;--sub:#9DAAA2;--line:#2C332A;--line2:#3A4237;--tint-y:#4A3F14;--tint-r:#4A2320;--tint-b:#1E3A52;--tint-g:#1F4A30;
       --accent:#3CC3B4;--accent-ink:#8FE0D6;--accent-bg:#12332F;--work:#4ADE80;--work-bg:#123324;
       --break:#F5B454;--break-bg:#3A2A10;--off:#94A3B8;--off-bg:#232A31;--danger:#F0857C;--danger-bg:#3A1815;
       --admin:#B896E8;--admin-bg:#2A1F3D;--help:#F0B25C;--help-bg:#3A2A10;
       --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.35);}
   }
-  :root[data-theme="dark"]{--ground:#12160F;--card:#1B211A;--ink:#EAF0E7;--sub:#9DAAA2;--line:#2C332A;--line2:#3A4237;
+  :root[data-theme="dark"]{--ground:#12160F;--card:#1B211A;--ink:#EAF0E7;--sub:#9DAAA2;--line:#2C332A;--line2:#3A4237;--tint-y:#4A3F14;--tint-r:#4A2320;--tint-b:#1E3A52;--tint-g:#1F4A30;
     --accent:#3CC3B4;--accent-ink:#8FE0D6;--accent-bg:#12332F;--work:#4ADE80;--work-bg:#123324;
     --break:#F5B454;--break-bg:#3A2A10;--off:#94A3B8;--off-bg:#232A31;--danger:#F0857C;--danger-bg:#3A1815;
     --admin:#B896E8;--admin-bg:#2A1F3D;--help:#F0B25C;--help-bg:#3A2A10;
@@ -26,6 +26,7 @@
   :root[data-theme="light"]{--ground:#FAFAF7;--card:#FFFFFF;--ink:#1E2A28;--sub:#5C6B66;--line:#E4E7E2;--line2:#D3D8D2;
     --accent:#0E8E82;--accent-ink:#0A6A61;--accent-bg:#E4F3F0;--work:#16A34A;--work-bg:#E7F6EC;--break:#D97706;--break-bg:#FBEEDD;
     --off:#64748B;--off-bg:#EEF1F4;--danger:#C0433B;--danger-bg:#FBEAE8;--admin:#7C4DBC;--admin-bg:#F0E9FA;--help:#B45309;--help-bg:#FBEEDD;
+    --tint-y:#F6E7A9;--tint-r:#F6C6C0;--tint-b:#BFD9F2;--tint-g:#C9E8D4;
     --shadow:0 1px 2px rgba(30,42,40,.05),0 6px 20px rgba(30,42,40,.06);}
 
   *{box-sizing:border-box}
@@ -181,6 +182,11 @@
   .kma{color:#fff;background:var(--work)}
   .kmm{color:#fff;background:var(--admin)}
   .sgrid td.cell.lk{background:var(--off-bg);cursor:not-allowed}
+  .sgrid td.cell.tY{background:var(--tint-y)!important}
+  .sgrid td.cell.tR{background:var(--tint-r)!important}
+  .sgrid td.cell.tB{background:var(--tint-b)!important}
+  .sgrid td.cell.tG{background:var(--tint-g)!important}
+  .sgrid td.cell .ntc{position:absolute;top:0;right:0;width:0;height:0;border-top:8px solid var(--help);border-left:8px solid transparent}
   .sgrid td.cell .lkx{font-size:8.5px;color:var(--sub);font-weight:700;letter-spacing:-.5px}
   .sgrid tr.subrow td{opacity:.96}
   .sgrid tr.subrow td.nm{padding-top:3px;padding-bottom:3px}
@@ -425,12 +431,13 @@
         <div class="legend"><b>表は「建物ごとの枠」に本務行と兼務行が並びます。</b>その建物の勤務はその枠の行で入力してください（マスをタップ）。<b>別の建物で勤務が入っている日はグレーのロック表示</b>（行き先の頭文字つき・タップ不可）になるので、同じ日の重複は起きません。<br>
           <b>日勤は朝＋夕の2部制</b>：マスの編集で朝・夕それぞれの時間（例: 2時間＋2時間）と場所（朝と夕で別の建物も可）を変えられます。表示は上のプルダウンで「区分」⇄「朝・夕の内訳」を切替。朝・夕の開始時刻は<b>「⏰ 勤務時間」</b>で建物×曜日ごとに設定できます。<br>
           同じ内容を続けて入れる時は、マスの編集画面の<b>「📋 連続入力」</b>→他の日をタップで貼り付け→「終了」。<br>
+          マスの編集で<b>備考</b>を書くと右上に▲マークが付き、マスが色づきます（色は選択可）。職員側の予定表示にも📝で表示されます。<br>
           手直し後は<b>「✔ チェック」</b>で配置漏れ（夜勤・日中の朝夕・世話人/生活支援員・常勤時間・上限・連勤）を確認できます。<br>
           マスの左上マーク: <span class="km kmk" style="position:static">希</span> 希望休あり　<span class="km kma" style="position:static">可</span> 勤務できる日（提出）　<span class="km kmm" style="position:static">条</span> 出勤・休み条件あり（受診同行・担当者会議など）<br>
           勤務の傾向（おまかせ／少なめ／日勤中心／夜勤中心／<b>日勤のみ・夜勤のみ</b>＝該当しない枠に入れない／バランス／<b>勤務なし</b>＝その月は配置しない）は<b>職員名簿で設定したものがデフォルト</b>。職員欄のプルダウンで<b>この月だけ</b>一時的に変えられます（名簿は変わりません・紫色=上書き中）。<b>応援に行けるのは名簿の「兼務できる建物」に登録した建物だけ</b>です（職員欄に「兼務可: 医大」等を表示）。他の事業所の建物を登録した職員は、その事業所の自動作成でも候補になり、表の下部「🤝 他事業所からの兼務」に読み取り専用で表示されます。<b>兼務者は先に作成・保存した事業所の勤務が優先</b>されるため、シフトは保存してから次の事業所を作成してください。<b>「今月の上限h」欄</b>に時間を入れると、その月はその時間まででしか配置されません（この月だけの設定。月計に上限を表示し、手直しで超えると「超過」と警告が出ます）。夜勤は自動作成でなるべく連続しないように割り当てます。
           頭文字の対応：永1=永山1条・医大=医大前・永6=永山6条・末6=末広6条・末Ⅰ=末広3条Ⅰ・末Ⅱ=末広3条Ⅱ・末1=末広1条　<span class="lg-z"></span> 配置0人の日<br>
           <b>日</b>＝日勤（朝4h＋夕4h、間は休憩）　<b>通</b>＝通し（9:00〜18:00）　<b>夜</b>＝夜勤（常勤20:00〜翌5:00／非常勤22:00〜翌5:00）<br>
-          常勤は<b>公休9日</b>＝月の基準時間以上が必要（31日の月176h・30日の月168h）。不足すると月計が赤くなり警告が出ます。<br>
+          常勤は<b>公休9日</b>。月の勤務時間は<b>基準以上（31日の月176h・30日の月168h）〜法定上限以内（31日の月177h・30日の月171h）</b>に自動で収めます。不足・超過は月計が赤くなり警告が出ます。<br>
           <b>世話人か生活支援員のどちらか</b>が毎日1名以上必要。夜間支援従事者でない職員が夜勤に入ると<b>「夜間支援従事者（自動兼務）」</b>として扱われ、様式出力・集計もその職種で計上されます。</div>
         <button class="cta adm" onclick="saveShift()">この月のシフトを保存する</button>
         <button class="ghost" onclick="openPreview()">🖨 勤務形態一覧表（予定・実績プレビュー／CSV出力）</button>
@@ -619,6 +626,11 @@
     <div class="field"><label>勤務区分</label><div class="chipgrid" id="cellChips"></div>
       <p class="muted" id="cellTimeHint" style="font-size:12px;margin:2px 0 0;min-height:18px"></p></div>
     <div class="field" id="cellUnitWrap"><label>勤務先（この行の建物に固定）</label><select id="cellUnit"></select></div>
+    <div class="field"><label>備考（このマスに気づいてほしいこと）</label><textarea id="cellNote" rows="2" placeholder="例: 受診同行あり／担当者会議 15:00〜 など"></textarea></div>
+    <div class="field"><label>マスの色</label><select id="cellCol">
+      <option value="">自動（備考があると黄色になります）</option>
+      <option value="y">黄</option><option value="r">赤</option>
+      <option value="b">青</option><option value="g">緑</option></select></div>
     <div id="segWrap" class="hide">
       <div class="field"><label>朝の時間と場所（0=朝は勤務なし）</label>
         <div style="display:flex;gap:8px"><input type="number" id="segMh" min="0" max="6" step="0.5" style="width:90px"><select id="segMw" style="flex:1"></select></div></div>
@@ -835,7 +847,9 @@ function setShCap(sid,ym,val){const o=getShCapAll(ym);const n=parseFloat(val);
   if(n>0)o[sid]=n;else delete o[sid];store.set(shCapKey(ym),o);
   const s=getStaff().find(x=>x.id===sid);const m=parseInt(ym.slice(5),10);
   toast((s?s.name+"：":"")+(n>0?m+"月は上限"+n+"時間までに設定しました（次の自動作成から反映）":m+"月の上限時間を解除しました"))}
-function minFulltimeH(days){return (days-9)*8} /* 常勤=公休9日: 31日月=176h, 30日月=168h */
+function minFulltimeH(days){return (days-9)*8}
+/* 常勤の月間上限＝法定労働時間（週40h×暦日÷7を切り捨て）: 31日月=177h・30日月=171h */
+function maxFulltimeH(days){return Math.floor(days*40/7)} /* 常勤=公休9日: 31日月=176h, 30日月=168h */
 function isFulltime(s){return (s.employ||"").indexOf("常勤")===0}
 function officeHasNight(oid){return getStaff().some(s=>s.office===oid&&hasRole(s,"夜間支援従事者"))}
 function saveStaffList(a){store.set("staff",a)}
@@ -1367,14 +1381,18 @@ function buildGrid(oid,mi,buf,editable){
           else ab=dispSeg&&c.k==="通し"?'<span style="font-size:8px;line-height:1.15;display:inline-block">通し<br>8h</span>':(KIND_AB[c.k]||"")}
         else ab=isMain?(KIND_AB[c.k]||"・"):"・";
         const cls=here?(c.k==="夜勤"?"cn":"cw"):((isMain&&(c.k==="休"||c.k==="有休"))?"co":"cu");
-        const ttl=[here?(c.k+(kindT(c.k,s,u.id,wd)?" "+kindT(c.k,s,u.id,wd):"")):(isMain&&!WORKING(c.k)?c.k:""),kb[d]?("希望休:"+kb[d]):null,avm[d]?("提出:"+avm[d]):null,mw[d]?((mw[d].type==="off"?"休み条件:":"出勤条件:")+mw[d].reason):null].filter(Boolean).join(" / ");
-        cells+=`<td class="cell ${cls}${mk}${canEdit?'':' ro'}" title="${ttl}" ${canEdit?`onclick="openCell('${s.id}',${d},'${u.id}')"`:''}>${ab||'・'}${km}</td>`}}
+        const showNote=(here||(isMain&&!WORKING(c.k)))&&(c.note||c.col);
+        const tint=showNote?(" t"+((c.col||"y").toUpperCase())):"";
+        const ntc=(showNote&&c.note)?'<span class="ntc" aria-hidden="true"></span>':'';
+        const ttl=[here?(c.k+(kindT(c.k,s,u.id,wd)?" "+kindT(c.k,s,u.id,wd):"")):(isMain&&!WORKING(c.k)?c.k:""),(showNote&&c.note)?("備考:"+c.note):null,kb[d]?("希望休:"+kb[d]):null,avm[d]?("提出:"+avm[d]):null,mw[d]?((mw[d].type==="off"?"休み条件:":"出勤条件:")+mw[d].reason):null].filter(Boolean).join(" / ");
+        cells+=`<td class="cell ${cls}${mk}${tint}${canEdit?'':' ro'}" title="${ttl}" ${canEdit?`onclick="openCell('${s.id}',${d},'${u.id}')"`:''}>${ab||'・'}${km}${ntc}</td>`}}
     const cap=shCapOf(s.id,mi.ym);
     const hasOv=Object.prototype.hasOwnProperty.call(ovmAll,s.id);
     const effPref=hasOv?ovmAll[s.id]:((s.pref)||"");
     const effMin=cap?Math.min(minFulltimeH(mi.days),cap):minFulltimeH(mi.days);
     const short=isMain&&isFulltime(s)&&!isWorkWish(s)&&effPref!=="none"&&allHrs<effMin;
-    const over=isMain&&cap&&allHrs>cap;
+    const legalMax=maxFulltimeH(mi.days);
+    const over=isMain&&((cap&&allHrs>cap)||(isFulltime(s)&&!isWorkWish(s)&&allHrs>legalMax));
     const autoNight=isMain&&!hasRole(s,"夜間支援従事者")&&arr.some(c=>c&&c.k==="夜勤");
     let nameCell;
     if(isMain){
@@ -1495,6 +1513,7 @@ function renderSched(){const mi=monthInfo(schOff);
     html+=`<div class="sch-day ${rest?'rest':''}"><div class="dt"><div class="dd ${w===0?'sun':w===6?'sat':''}">${i}</div><div class="dw">${WD[w]}</div></div>
       <div style="flex:1"><div class="sh">${kind}</div>
       ${WORKING(kind)?`<div class="tt">${kindT(kind,me,cell.w,dow(mi,i))?kindT(kind,me,cell.w,dow(mi,i))+" ・ ":""}勤務先：${unitName(cell.w)}</div>`:''}
+      ${cell.note?`<div class="tt" style="color:var(--help);font-weight:700">📝 ${cell.note}</div>`:''}
       ${cross?`<div class="hlp">↗ 応援（${officeName(unitOffice(cell.w))}・${unitName(cell.w)}）</div>`:other?`<div class="hlp">↗ ${unitName(cell.w)}へ</div>`:''}
       ${mw[i]?`<div class="hlp" style="color:var(--admin)">📌 ${mw[i].type==="off"?"休み条件：":""}${mw[i].reason}</div>`:''}
       ${km?`<div class="kib">希望休を申請中</div>`:''}</div></div>`}
@@ -1745,6 +1764,9 @@ function renderShWarn(mi){const el=document.getElementById("shWarn");if(!el)retu
     .map(s=>({s,h:hrsOf(s),cap:shCapOf(s.id,mi.ym)}))
     .filter(x=>x.h<(x.cap?Math.min(minH,x.cap):minH)); // 上限が基準より低い職員は上限を基準に
   if(low.length)msgs.push("⏱ <b>常勤で月"+minH+"時間に足りない職員</b>: "+low.map(x=>x.s.name+"（"+x.h+"h／あと"+((x.cap?Math.min(minH,x.cap):minH)-x.h)+"h"+(x.cap&&x.cap<minH?"・上限"+x.cap+"h設定":"")+"）").join("、"));
+  const maxH=maxFulltimeH(mi.days);
+  const oversL=staffL.filter(s=>isFulltime(s)&&!isWorkWish(s)).map(s=>({s,h:hrsOf(s)})).filter(x=>x.h>maxH);
+  if(oversL.length)msgs.push("⛔ <b>常勤で法定の上限（月"+maxH+"時間）を超えている職員</b>: "+oversL.map(x=>x.s.name+"（"+x.h+"h）").join("、")+"<br><span style='font-weight:400'>勤務日を減らしてください。自動作成は上限内で組みますが、手直しで超えることがあります。</span>");
   const overs=staffL.map(s=>({s,h:hrsOf(s),cap:shCapOf(s.id,mi.ym)})).filter(x=>x.cap&&x.h>x.cap);
   if(overs.length)msgs.push("⛔ <b>今月の上限時間を超えている職員</b>: "+overs.map(x=>x.s.name+"（"+x.h+"h／上限"+x.cap+"h）").join("、")+"<br><span style='font-weight:400'>勤務日を減らすか、上限の入力を見直してください。</span>");
   const longRuns=staffL.map(s=>{let mx=0,w=0;
@@ -1788,7 +1810,7 @@ function saveUH(){const uid=document.getElementById("uhUnit").value;if(!uid)retu
 function checkShift(){const mi=monthInfo(admOff);
   const n=renderShWarn(mi);
   const el=document.getElementById("shWarn");
-  if(n===0){el.innerHTML='<div class="pok">✔ 問題は見つかりませんでした<br><span style="font-weight:400">確認した項目: 🌙夜勤（毎日・各建物）／☀日中の配置（平日=朝・夕の両方、土日=通し）／👤世話人・生活支援員／⏱常勤の基準時間／⛔今月の上限時間／🔁連続勤務</span></div>';
+  if(n===0){el.innerHTML='<div class="pok">✔ 問題は見つかりませんでした<br><span style="font-weight:400">確認した項目: 🌙夜勤（毎日・各建物）／☀日中の配置（平日=朝・夕の両方、土日=通し）／👤世話人・生活支援員／⏱常勤の基準時間と法定上限（31日月176〜177h・30日月168〜171h）／⛔今月の上限時間／🔁連続勤務</span></div>';
     toast("チェックしました：問題ありません")}
   else{toast("⚠ 注意が"+n+"件あります。表の上の警告を確認してください")}
   el.scrollIntoView({behavior:"smooth",block:"nearest"})}
@@ -1824,6 +1846,8 @@ function openCell(sid,day,uid){
   if(document.getElementById("segMw").value!==(sg0?sg0.mw:cellUid))document.getElementById("segMw").value=s.unit;
   if(document.getElementById("segEw").value!==(sg0?sg0.ew:cellUid))document.getElementById("segEw").value=s.unit;
   document.getElementById("segWrap").classList.toggle("hide",cellSel!=="日勤");
+  document.getElementById("cellNote").value=c.note||"";
+  document.getElementById("cellCol").value=c.col||"";
   document.getElementById("cellOv").classList.remove("hide")}
 function renderChips(){document.getElementById("cellChips").innerHTML=KINDS.map(k=>
   `<button class="chip ${k===cellSel?'on':''}" onclick="cellSel='${k}';renderChips();
@@ -1867,6 +1891,10 @@ function applyCell(){const c=B[cellSid][cellDay-1];
     if(mh===4&&eh===4&&mw===cellUid&&ew===cellUid){c.w=cellUid}
     else{c.w=mh>0?mw:ew;c.seg={mh:mh,eh:eh,mw:mw,ew:ew}}}
   else{c.k=cellSel;c.w=WORKING(cellSel)?cellUid:st.unit} /* 勤務=行の建物、休み系=本務に戻す */
+  const note=document.getElementById("cellNote").value.trim();
+  const col=document.getElementById("cellCol").value;
+  if(note)c.note=note;else delete c.note;
+  if(col)c.col=col;else delete c.col;
   shDirty=true;closeCell();renderShiftGrid()}
 function closeCell(){document.getElementById("cellOv").classList.add("hide")}
 function clearMonth(){const mi=monthInfo(admOff);
@@ -1889,7 +1917,8 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
   // 勤務の傾向（事前設定）: 少なめ=非常勤の上限を下げ、候補としても選ばれにくく
   const pref=s=>shPrefOf(s.id,mi.ym);          // 名簿のデフォルト＋この月だけの上書きを反映
   const manCap=s=>shCapOf(s.id,mi.ym);         // 今月の上限時間（管理者が入力。設定があれば厳守）
-  const capH=s=>isFulltime(s)?minH+8:(pref(s)==="less"?88:128); // 非常勤=約16日分（少なめは約11日分）
+  const maxH=maxFulltimeH(mi.days);             // 常勤の法定上限（31日=177h/30日=171h）
+  const capH=s=>isFulltime(s)?maxH:(pref(s)==="less"?88:128); // 非常勤=約16日分（少なめは約11日分）
   const hours={},nH={},dH={};ALL.forEach(s=>{hours[s.id]=0;nH[s.id]=0;dH[s.id]=0});
   // 自事業所の職員=白紙から（ただし保存済みの「他事業所への兼務」は消さずに残す）
   // 兼務者=保存済みシフトを土台に、空いている日だけ使う
@@ -1949,6 +1978,7 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
   // 連勤の絶対制限: 前後をつなげて5連勤を超える割り当ては行わない（埋まらない分は警告として見せる）
   const avail=(s,d,m,grp)=>free(s,d)&&avOK(s,d,grp)&&prefOK(s,grp)&&runIf(s,d)<=5
     &&(grp==="night"||m>=2||!(d>1&&B[s.id][d-2].k==="夜勤")) // 夜勤明けの翌日は日中に入れない（どうしても埋まらない時だけ許す）
+    &&(!isFulltime(s)||isWorkWish(s)||hours[s.id]+(grp==="night"?kindH("夜勤",s):8)<=maxH) // 常勤は法定上限(177h/171h)をどのモードでも超えない
     &&(manCap(s)?hours[s.id]+(grp==="night"?kindH("夜勤",s):8)<=manCap(s) // 上限入力あり=絶対に超えない
                 :((m>=2&&!guestIds.has(s.id))||hours[s.id]<capH(s))) // 兼務者は常に上限内で
 
@@ -2081,7 +2111,9 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
     let guard=0;
     const mc=manCap(s);const tgt=mc?Math.min(minH,mc):minH; // 上限が基準より低ければ上限まで
     while(hours[s.id]<tgt&&guard++<62){
-      if(mc&&hours[s.id]+8>mc)break; // 1日足すと上限を超えるなら足さない
+      const okH=h=>hours[s.id]+h<=maxH&&(!mc||hours[s.id]+h<=mc);
+      const full=okH(8),half=!full&&okH(4); // 8hが入らない端数は半日(4h)で埋める（夜勤9h混じり対策）
+      if(!full&&!half)break;
       let best=null,bestScore=1e9;
       for(let d=1;d<=mi.days;d++){
         if(!free(s,d))continue;
@@ -2092,7 +2124,7 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
         +((d<mi.days&&B[s.id][d].k==="夜勤")?50:0); // 翌日が夜勤の日も避けめに
         if(score<bestScore){bestScore=score;best=d}}
       if(best===null)break;   // 連勤制限内で足せる日が無い→不足は警告に出る
-      setCell(s,best,reqKindOf(best))}});
+      setCell(s,best,full?reqKindOf(best):"半日")}});
   renderShiftGrid();
   toast("希望休・出勤条件・夜勤・常勤"+minH+"hを考慮して自動作成しました。警告が出ている場合は調整してください")}
 
