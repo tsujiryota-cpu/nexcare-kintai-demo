@@ -1423,8 +1423,8 @@ function buildGrid(oid,mi,buf,editable){
       :`${days}日/${hrs}h`;
     return `<tr${isMain?'':' class="subrow"'}><td class="nm">${nameCell}</td>${cells}<td class="tot">${tot}</td></tr>`};
   units.forEach(u=>{
-    const mains=staffL.filter(s=>s.unit===u.id);
-    const subs=getStaff().filter(s=>s.unit!==u.id&&canHelpAt(s,u.id));
+    const mains=loginSort(staffL.filter(s=>s.unit===u.id));
+    const subs=loginSort(getStaff().filter(s=>s.unit!==u.id&&canHelpAt(s,u.id)));
     h+=`<tr class="covhd"><td class="nm">🏠 ${u.name}</td><td colspan="${mi.days+1}" style="text-align:left;padding:4px 8px">本務${mains.length}名＋兼務${subs.length}名。この建物の勤務はこの枠の行で入力（他の建物の勤務がある日はロック）</td></tr>`;
     mains.forEach(s=>{h+=staffRow(s,u,true)});
     subs.forEach(s=>{h+=staffRow(s,u,false)})});
@@ -1547,7 +1547,7 @@ function admTab(t){["roster","shift","agg","del","ot"].forEach(x=>{
 let admPOff=0,apDay=null;
 function initAdmPunch(){const sel=document.getElementById("apStaff");
   sel.innerHTML=activeOffices().map(o=>`<optgroup label="${o.name}">`
-    +officeStaff(o.id).map(s=>`<option value="${s.id}">${s.name}（${unitName(s.unit)}）</option>`).join("")+`</optgroup>`).join("");
+    +loginSort(officeStaff(o.id)).map(s=>`<option value="${s.id}">${s.name}（${unitName(s.unit)}）</option>`).join("")+`</optgroup>`).join("");
   admPOff=0;renderAdmBook()}
 function apMonth(d){admPOff+=d;renderAdmBook()}
 function apMi(){return monthInfo(admPOff)}
@@ -1635,8 +1635,8 @@ function renderDelLog(){const ids=activeStaff().map(s=>s.id);
     :'<div class="empty" style="border:1px solid var(--line);border-radius:14px">削除の記録はまだありません。</div>')}
 
 function renderRoster(){const staff=getStaff();let html="";
-  activeOffices().forEach(o=>{const list=officeStaff(o.id);
-    const guests=staff.filter(x=>x.office!==o.id&&(x.help||[]).some(uid=>officeUnits(o.id).some(u=>u.id===uid)));
+  activeOffices().forEach(o=>{const list=loginSort(officeStaff(o.id));
+    const guests=loginSort(staff.filter(x=>x.office!==o.id&&(x.help||[]).some(uid=>officeUnits(o.id).some(u=>u.id===uid))));
     if(!list.length&&!guests.length)return;
     html+=`<div class="grouphd">${o.name}（${list.length}名${guests.length?"＋兼務"+guests.length+"名":""}）</div>`;
     html+=list.map(s=>`<div class="adm-row"><span class="ava ${s.admin?'adm':''}" style="width:34px;height:34px;font-size:13px">${initial(s.name)}</span>
