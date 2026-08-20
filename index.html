@@ -7,6 +7,7 @@
     --work:#16A34A; --work-bg:#E7F6EC; --break:#D97706; --break-bg:#FBEEDD;
     --off:#64748B; --off-bg:#EEF1F4; --danger:#C0433B; --danger-bg:#FBEAE8;
     --admin:#7C4DBC; --admin-bg:#F0E9FA; --help:#B45309; --help-bg:#FBEEDD;
+    --tint-y:#F6E7A9; --tint-r:#F6C6C0; --tint-b:#BFD9F2; --tint-g:#C9E8D4;
     --shadow:0 1px 2px rgba(30,42,40,.05),0 6px 20px rgba(30,42,40,.06);
     --r:14px;
     --f:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
@@ -485,7 +486,7 @@
     <h3>打刻時刻の修正</h3>
     <p class="sub" id="editSub"></p>
     <div class="field"><label>修正後の時刻</label><input type="time" id="editTime"></div>
-    <div class="field"><label>修正理由（必須）</label><textarea id="editReason" placeholder="例：打刻を忘れたため、実際の出勤時刻に修正"></textarea>
+    <div class="field"><label id="editReasonLabel">修正理由（必須）</label><textarea id="editReason" placeholder="例：打刻を忘れたため、実際の出勤時刻に修正"></textarea>
       <div class="hint" id="editHint">修正には理由の入力が必要です。</div></div>
     <button class="cta" onclick="saveEdit()">修正を保存する</button>
     <button class="del" onclick="openDelPunch()">この打刻を削除する（誤打刻）</button>
@@ -1173,8 +1174,8 @@ function renderOTAdm(){const el=document.getElementById("otAdmList");if(!el)retu
         <div class="nm">${r.s.name}<span class="rl" style="display:inline">（${unitName(r.s.unit)}）</span></div>
         <div class="rl">${jdate(r.x.date)}・<b>${r.x.h}h</b>　申請日時: ${r.x.at||""}</div>
         <div class="rl" style="white-space:normal">📝 ${r.x.reason}</div></span>
-      <button class="go" style="background:var(--work);flex-shrink:0" onclick="decideOT('${r.s.id}','${r.x.id}','approved')">承認</button>
-      <button class="go" style="background:var(--danger);flex-shrink:0" onclick="decideOT('${r.s.id}','${r.x.id}','rejected')">却下</button></div>`).join("")
+      <button class="go" style="background:var(--work);border-color:var(--work);color:#fff;flex-shrink:0" onclick="decideOT('${r.s.id}','${r.x.id}','approved')">承認</button>
+      <button class="go" style="background:var(--danger);border-color:var(--danger);color:#fff;flex-shrink:0" onclick="decideOT('${r.s.id}','${r.x.id}','rejected')">却下</button></div>`).join("")
     :'<div class="empty" style="border:1px solid var(--line);border-radius:12px;margin-bottom:14px">承認待ちの申請はありません。</div>')+
    `<h2 style="margin:18px 0 10px">対応済み</h2>`+
    (done.length?done.map(r=>`<div class="adm-row" style="opacity:.78;align-items:flex-start">
@@ -1197,7 +1198,9 @@ function renderMyBook(){const el=document.getElementById("myBook");if(!el)return
   el.innerHTML=buildBook(me.id,mi,false);
   renderOTMine()}
 
+function adminPunchCtx(){return !!(me&&me.admin&&(pSid!==me.id||pDate!==todayKey()))} /* 打刻管理からの操作か */
 function openEdit(i){editIdx=i;const p=getPunches()[i];
+  document.getElementById("editReasonLabel").textContent=adminPunchCtx()?"修正理由（管理者権限の訂正は任意）":"修正理由（必須）";
   document.getElementById("editSub").textContent=p.type+" ／ 現在 "+p.time;
   document.getElementById("editTime").value=p.time;
   document.getElementById("editReason").value=p.comment||"";
@@ -1205,7 +1208,7 @@ function openEdit(i){editIdx=i;const p=getPunches()[i];
   document.getElementById("editOv").classList.remove("hide")}
 function closeEdit(){document.getElementById("editOv").classList.add("hide");editIdx=null}
 function saveEdit(){const r=document.getElementById("editReason").value.trim();
-  if(!r){document.getElementById("editHint").classList.add("show");return}
+  if(!r&&!adminPunchCtx()){document.getElementById("editHint").classList.add("show");return}
   const a=getPunches();a[editIdx].time=document.getElementById("editTime").value;
   a[editIdx].edited=true;a[editIdx].comment=r;
   if(pSid&&pSid!==me.id)a[editIdx].editedBy=me.name; /* 管理者による他職員の修正は記録 */
@@ -1510,10 +1513,11 @@ function renderSched(){const mi=monthInfo(schOff);
     const cross=WORKING(kind)&&unitOffice(cell.w)!==me.office;
     const other=WORKING(kind)&&!cross&&cell.w!==me.unit;
     const ds=dstr(mi,i);const km=kib.find(k=>k.date===ds);
-    html+=`<div class="sch-day ${rest?'rest':''}"><div class="dt"><div class="dd ${w===0?'sun':w===6?'sat':''}">${i}</div><div class="dw">${WD[w]}</div></div>
+    const noteTint=(cell.note||cell.col)?` style="background:var(--tint-${cell.col||'y'});box-shadow:inset 4px 0 0 var(--help)"`:'';
+    html+=`<div class="sch-day ${rest?'rest':''}"${noteTint}><div class="dt"><div class="dd ${w===0?'sun':w===6?'sat':''}">${i}</div><div class="dw">${WD[w]}</div></div>
       <div style="flex:1"><div class="sh">${kind}</div>
       ${WORKING(kind)?`<div class="tt">${kindT(kind,me,cell.w,dow(mi,i))?kindT(kind,me,cell.w,dow(mi,i))+" ・ ":""}勤務先：${unitName(cell.w)}</div>`:''}
-      ${cell.note?`<div class="tt" style="color:var(--help);font-weight:700">📝 ${cell.note}</div>`:''}
+      ${cell.note?`<div style="font-size:13px;color:var(--ink);font-weight:700;margin-top:2px">📝 ${cell.note}</div>`:''}
       ${cross?`<div class="hlp">↗ 応援（${officeName(unitOffice(cell.w))}・${unitName(cell.w)}）</div>`:other?`<div class="hlp">↗ ${unitName(cell.w)}へ</div>`:''}
       ${mw[i]?`<div class="hlp" style="color:var(--admin)">📌 ${mw[i].type==="off"?"休み条件：":""}${mw[i].reason}</div>`:''}
       ${km?`<div class="kib">希望休を申請中</div>`:''}</div></div>`}
