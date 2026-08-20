@@ -471,9 +471,9 @@
 
   <!-- ===== BOTTOM NAV ===== -->
   <nav id="nav" class="hide">
-    <button class="nv on" data-v="punch" onclick="nav('punch')"><span class="em">🕐</span>打刻</button>
-    <button class="nv" data-v="kibou" onclick="nav('kibou')"><span class="em">📅</span>希望休</button>
     <button class="nv" data-v="sched" onclick="nav('sched')"><span class="em">📋</span>勤務予定</button>
+    <button class="nv" data-v="kibou" onclick="nav('kibou')"><span class="em">📅</span>希望休</button>
+    <button class="nv on" data-v="punch" onclick="nav('punch')"><span class="em">🕐</span>打刻</button>
     <button class="nv hide" id="navAdmin" data-v="admin" onclick="nav('admin')"><span class="em">⚙️</span>管理</button>
   </nav>
 </div>
@@ -572,6 +572,8 @@
       <option value="balance">日勤・夜勤バランス</option><option value="none">勤務なし（自動作成で配置しない）</option></select></div>
     <div class="field"><label>兼務できる建物（どうしても必要な時だけ応援に行ける建物。未選択＝自分の建物のみ）</label>
       <div id="stHelp" style="display:grid;grid-template-columns:1fr 1fr;gap:7px"></div></div>
+    <div class="field"><label>月の上限時間（主に非常勤。空欄=制限なし）</label>
+      <input type="number" id="stCapDef" min="0" step="0.5" placeholder="例: 80（毎月この時間までしか自動配置しない）"></div>
     <div class="field"><label>資格（任意）</label><input type="text" id="stQual" placeholder="介護福祉士 など"></div>
     <label class="chk"><input type="checkbox" id="stAdmin"><span><span class="t">管理者権限を与える</span><span class="s">名簿の管理・シフト作成・集計ができるようになります</span></span></label>
     <div class="hint" id="stHint" style="margin-top:10px">氏名を入力してください。</div>
@@ -731,7 +733,7 @@ const GH_ROLES=["管理者","サービス管理責任者","世話人","生活支
    勤務形態: A常勤専従/B常勤兼務/C非常勤専従/D非常勤兼務 を反映。林しおりはテラス医大前のみ（ホームに入れない・指示）
    三橋亮大・辻はネクスケア籍だが勤務実態により登録。松浦直樹は全GHサビ管＋末広3条Ⅰ管理者（指示） */
 const STAFF_SEED=[
- {id:"n01",name:"辻 崚太",office:"terrace",unit:"u_naga1",roles:["管理者","生活支援員"],employ:"常勤兼務",qual:"",admin:true,help:[]},
+ {id:"n01",name:"辻 崚太",office:"terrace",unit:"u_naga1",roles:["生活支援員"],employ:"常勤兼務",qual:"",admin:true,help:[]}, /* 役職は管理者ではない（管理者権限のみ・2026-08-20指示） */
  {id:"n02",name:"小橋 和輝",office:"terrace",unit:"u_naga1",roles:["管理者","サービス管理責任者","世話人","夜間支援従事者"],employ:"常勤兼務",qual:"サビ管基礎研修",admin:true,help:["u_idai"]},
  {id:"n03",name:"髙橋 こずえ",office:"terrace",unit:"u_naga1",roles:["世話人","生活支援員"],employ:"常勤兼務",qual:"介護福祉士",admin:false,help:["u_sue6"]},
  {id:"n04",name:"今 里美",office:"terrace",unit:"u_naga1",roles:["世話人","生活支援員"],employ:"非常勤兼務",qual:"",admin:false,help:[]},
@@ -820,7 +822,7 @@ function unitShort(id){const u=UNITS.find(x=>x.id===id);return u?(u.sn||u.name.s
 function unitOffice(id){const u=UNITS.find(x=>x.id===id);return u?u.office:""}
 function officeUnits(oid){return UNITS.filter(u=>u.office===oid&&!u.closed)} /* 閉所建物は全選択肢から除外 */
 function getStaff(){let s=store.get("staff",null);
-  if(!s||!Array.isArray(s)||!s.length||!s[0].unit||!s.some(x=>x.id==="n36")||((s.find(x=>x.id==="n27")||{}).roles||[]).indexOf("管理者")>=0||!s[0].roles||s[0].help===undefined||(((s.find(x=>x.id==="n29")||{}).help)||[]).indexOf("u_naga1")<0||(s.find(x=>x.id==="n15")||{}).unit==="u_kamui3"||(((s.find(x=>x.id==="n12")||{}).help)||[]).indexOf("u_sue3a")<0){
+  if(!s||!Array.isArray(s)||!s.length||!s[0].unit||!s.some(x=>x.id==="n36")||((s.find(x=>x.id==="n27")||{}).roles||[]).indexOf("管理者")>=0||!s[0].roles||s[0].help===undefined||(((s.find(x=>x.id==="n29")||{}).help)||[]).indexOf("u_naga1")<0||(s.find(x=>x.id==="n15")||{}).unit==="u_kamui3"||(((s.find(x=>x.id==="n12")||{}).help)||[]).indexOf("u_sue3a")<0||(((s.find(x=>x.id==="n01")||{}).roles)||[]).indexOf("管理者")>=0){
     s=STAFF_SEED.map(x=>Object.assign({},x));store.set("staff",s)}return s}
 function isWorkWish(s){return s&&s.wishMode==="work"} /* 勤務可能日を提出するタイプ */
 /* 勤務の傾向（自動作成の事前設定。管理者がシフト作成グリッドの職員欄で設定） */
@@ -885,9 +887,15 @@ function renderTabs(){document.getElementById("tabs").innerHTML=activeOffices().
   return `<button class="tab ${o.id===curOffice?'on':''}" onclick="pickOffice('${o.id}')">${o.name}<span style="opacity:.7"> ${n}</span></button>`}).join("")}
 function pickOffice(id){curOffice=id;renderTabs();renderStaff()}
 function initial(n){return (n||"?").replace(/\s/g,"").slice(0,1)}
+/* ログインの職員カード並び順: 役職の管理者→サビ管→常勤→非常勤(日勤メイン)→非常勤(夜勤)。各グループ内は五十音（文字コード）順 */
+function loginSort(list){
+  const grp=s=>hasRole(s,"管理者")?0:hasRole(s,"サービス管理責任者")?1:isFulltime(s)?2
+    :((isWorkWish(s)||((s.roles||[]).length===1&&hasRole(s,"夜間支援従事者")))?4:3);
+  return list.slice().sort((a,b)=>{const g=grp(a)-grp(b);if(g)return g;
+    return (a.name||"").localeCompare(b.name||"","ja")})}
 function renderStaff(){const el=document.getElementById("staffGrid");
   if(!curOffice){el.innerHTML=`<div class="empty" style="grid-column:1/3;border:1px solid var(--line);border-radius:14px">「${companyName(curCompany)}」の事業所・職員は、このデモではまだ登録されていません。<br>本番では会社ごとに事業所と職員を登録できます。<br><span class="muted" style="font-size:12px">（ニコライフを選ぶとサンプルを試せます）</span></div>`;return}
-  const list=officeStaff(curOffice);
+  const list=loginSort(officeStaff(curOffice));
   if(!list.length){el.innerHTML='<div class="empty" style="grid-column:1/3;border:1px solid var(--line);border-radius:14px">この事業所にはまだ職員がいません。</div>';return}
   el.innerHTML=list.map(s=>`<button class="staff" onclick="pickStaff('${s.id}')"><span class="ava ${s.admin?'adm':''}">${initial(s.name)}</span>
     <span style="min-width:0"><span class="nm">${s.name}</span><span class="rl">${unitName(s.unit)}・${roleStr(s)}${s.admin?'・管理者権限':''}</span></span></button>`).join("")}
@@ -1389,7 +1397,7 @@ function buildGrid(oid,mi,buf,editable){
         const ntc=(showNote&&c.note)?'<span class="ntc" aria-hidden="true"></span>':'';
         const ttl=[here?(c.k+(kindT(c.k,s,u.id,wd)?" "+kindT(c.k,s,u.id,wd):"")):(isMain&&!WORKING(c.k)?c.k:""),(showNote&&c.note)?("備考:"+c.note):null,kb[d]?("希望休:"+kb[d]):null,avm[d]?("提出:"+avm[d]):null,mw[d]?((mw[d].type==="off"?"休み条件:":"出勤条件:")+mw[d].reason):null].filter(Boolean).join(" / ");
         cells+=`<td class="cell ${cls}${mk}${tint}${canEdit?'':' ro'}" title="${ttl}" ${canEdit?`onclick="openCell('${s.id}',${d},'${u.id}')"`:''}>${ab||'・'}${km}${ntc}</td>`}}
-    const cap=shCapOf(s.id,mi.ym);
+    const cap=shCapOf(s.id,mi.ym)||(s.capDef>0?s.capDef:0);
     const hasOv=Object.prototype.hasOwnProperty.call(ovmAll,s.id);
     const effPref=hasOv?ovmAll[s.id]:((s.pref)||"");
     const effMin=cap?Math.min(minFulltimeH(mi.days),cap):minFulltimeH(mi.days);
@@ -1513,9 +1521,13 @@ function renderSched(){const mi=monthInfo(schOff);
     const cross=WORKING(kind)&&unitOffice(cell.w)!==me.office;
     const other=WORKING(kind)&&!cross&&cell.w!==me.unit;
     const ds=dstr(mi,i);const km=kib.find(k=>k.date===ds);
-    const noteTint=(cell.note||cell.col)?` style="background:var(--tint-${cell.col||'y'});box-shadow:inset 4px 0 0 var(--help)"`:'';
+    const isToday=(schOff===0&&i===(new Date()).getDate());
+    const stl=[];
+    if(cell.note||cell.col)stl.push(`background:var(--tint-${cell.col||'y'});box-shadow:inset 4px 0 0 var(--help)`);
+    if(isToday)stl.push("border:2.5px solid var(--accent)");
+    const noteTint=stl.length?` style="${stl.join(";")}"`:'';
     html+=`<div class="sch-day ${rest?'rest':''}"${noteTint}><div class="dt"><div class="dd ${w===0?'sun':w===6?'sat':''}">${i}</div><div class="dw">${WD[w]}</div></div>
-      <div style="flex:1"><div class="sh">${kind}</div>
+      <div style="flex:1"><div class="sh">${kind}${isToday?' <span class="badge-e" style="color:#fff;background:var(--accent)">今日</span>':''}</div>
       ${WORKING(kind)?`<div class="tt">${kindT(kind,me,cell.w,dow(mi,i))?kindT(kind,me,cell.w,dow(mi,i))+" ・ ":""}勤務先：${unitName(cell.w)}</div>`:''}
       ${cell.note?`<div style="font-size:13px;color:var(--ink);font-weight:700;margin-top:2px">📝 ${cell.note}</div>`:''}
       ${cross?`<div class="hlp">↗ 応援（${officeName(unitOffice(cell.w))}・${unitName(cell.w)}）</div>`:other?`<div class="hlp">↗ ${unitName(cell.w)}へ</div>`:''}
@@ -1587,6 +1599,9 @@ function apAdd(){const tp=document.getElementById("apType").value;
   document.getElementById("apTime").value="";
   renderApDay();renderAdmBook();toast(tp+"（"+tv+"）を追加しました")}
 
+let dlFilter="",dlSort="new";
+function dlChange(){dlFilter=document.getElementById("dlStaff").value;
+  dlSort=document.getElementById("dlSort").value;renderDelLog()}
 function renderDelLog(){const ids=activeStaff().map(s=>s.id);
   const rows=[];
   Object.keys(localStorage).forEach(k=>{
@@ -1597,14 +1612,27 @@ function renderDelLog(){const ids=activeStaff().map(s=>s.id);
     if(ids.indexOf(sid)<0)return;
     const s=getStaff().find(x=>x.id===sid);
     (store.get(k.slice(3),[])||[]).forEach(p=>rows.push({s,date,p}))});
-  rows.sort((a,b)=>a.date<b.date?1:(a.date>b.date?-1:0));
-  document.getElementById("delLogList").innerHTML=rows.length?rows.map(r=>{
+  /* 絞り込み・並べ替え */
+  const shown=rows.filter(r=>!dlFilter||r.s.id===dlFilter);
+  const cmpD=(a,b)=>a.date<b.date?-1:(a.date>b.date?1:0);
+  if(dlSort==="old")shown.sort(cmpD);
+  else if(dlSort==="staff")shown.sort((a,b)=>{const n=(a.s.name||"").localeCompare(b.s.name||"","ja");return n||-cmpD(a,b)});
+  else shown.sort((a,b)=>-cmpD(a,b));
+  const staffOpts=[...new Set(rows.map(r=>r.s.id))].map(id=>{const st=getStaff().find(x=>x.id===id);
+    return `<option value="${id}"${dlFilter===id?" selected":""}>${st?st.name:id}</option>`}).join("");
+  const bar=`<div style="display:flex;gap:8px;margin-bottom:10px">
+    <select id="dlStaff" onchange="dlChange()" style="flex:1;font-size:12px"><option value="">全職員</option>${staffOpts}</select>
+    <select id="dlSort" onchange="dlChange()" style="flex:1;font-size:12px">
+      <option value="new"${dlSort==="new"?" selected":""}>新しい順</option>
+      <option value="old"${dlSort==="old"?" selected":""}>古い順</option>
+      <option value="staff"${dlSort==="staff"?" selected":""}>職員ごと</option></select></div>`;
+  document.getElementById("delLogList").innerHTML=bar+(shown.length?shown.map(r=>{
     const d=r.date.split("-");
     return `<div class="adm-row"><span style="min-width:0;flex:1">
       <div class="nm">${d[1]}/${d[2]}　${r.s.name}
         <span class="badge-e" style="margin-left:6px;color:var(--danger);background:var(--danger-bg)">${r.p.type} ${r.p.time} を削除</span></div>
       <div class="rl">理由：${r.p.reason} ・ ${r.p.delAt} に削除${r.p.by?" ・ 削除者："+r.p.by:"（本人）"}${r.p.place?" ・ 場所："+unitName(r.p.place):""}</div></span></div>`}).join("")
-    :'<div class="empty" style="border:1px solid var(--line);border-radius:14px">削除の記録はまだありません。</div>'}
+    :'<div class="empty" style="border:1px solid var(--line);border-radius:14px">削除の記録はまだありません。</div>')}
 
 function renderRoster(){const staff=getStaff();let html="";
   activeOffices().forEach(o=>{const list=officeStaff(o.id);
@@ -1614,7 +1642,7 @@ function renderRoster(){const staff=getStaff();let html="";
     html+=list.map(s=>`<div class="adm-row"><span class="ava ${s.admin?'adm':''}" style="width:34px;height:34px;font-size:13px">${initial(s.name)}</span>
       <span style="min-width:0"><div class="nm">${s.name}${s.admin?'<span class="adm-badge">管理者権限</span>':''}</div>
       <div class="rl">${unitName(s.unit)} ・ ${roleStr(s)} ・ ${s.employ||''}${s.qual?' ・ '+s.qual:''}${isWorkWish(s)?' ・ <span style="color:var(--work);font-weight:700">勤務可提出型</span>':''}</div>
-      ${(s.pref||helpUnitsOf(s).length)?`<div class="rl" style="color:var(--admin);font-weight:700">⚙ ${[s.pref?"傾向: "+PREF_LABEL[s.pref]:null,helpUnitsOf(s).length?"兼務可: "+helpUnitsOf(s).map(unitShort).join("・"):null].filter(Boolean).join("　")}</div>`:''}</span>
+      ${(s.pref||helpUnitsOf(s).length||s.capDef>0)?`<div class="rl" style="color:var(--admin);font-weight:700">⚙ ${[s.pref?"傾向: "+PREF_LABEL[s.pref]:null,helpUnitsOf(s).length?"兼務可: "+helpUnitsOf(s).map(unitShort).join("・"):null,s.capDef>0?"月上限"+s.capDef+"h":null].filter(Boolean).join("　")}</div>`:''}</span>
       <button class="go" onclick="openStaff('${s.id}')">編集</button></div>`).join("");
     if(guests.length){
       html+=`<div class="grouphd" style="font-size:11px;opacity:.85">🤝 兼務（他事業所の所属で、この事業所の建物に入れる職員）</div>`;
@@ -1643,11 +1671,11 @@ function openStaff(id){stEditId=id;const isNew=!id;
   g("stHelp").innerHTML=UNITS.filter(u=>!u.closed).map(u=>
     `<label class="chk" style="padding:9px 11px;background:var(--off-bg)"><input type="checkbox" value="${u.id}" ${curHelp.indexOf(u.id)>=0?'checked':''}><span class="t" style="font-size:12.5px">${u.name}</span></label>`).join("");
   if(isNew){g("stName").value="";g("stOffice").value=curOffice||activeOffices()[0].id;fillUnitSelect();
-    g("stEmploy").value="常勤専従";g("stWish").value="off";g("stQual").value="";g("stAdmin").checked=false;g("stPref").value=""}
+    g("stEmploy").value="常勤専従";g("stWish").value="off";g("stQual").value="";g("stAdmin").checked=false;g("stPref").value="";g("stCapDef").value=""}
   else{const s=getStaff().find(x=>x.id===id);g("stName").value=s.name;g("stOffice").value=s.office;fillUnitSelect();
     g("stUnit").value=s.unit;g("stEmploy").value=s.employ||"常勤専従";
     g("stWish").value=isWorkWish(s)?"work":"off";
-    g("stQual").value=s.qual||"";g("stAdmin").checked=!!s.admin;g("stPref").value=s.pref||""}
+    g("stQual").value=s.qual||"";g("stAdmin").checked=!!s.admin;g("stPref").value=s.pref||"";g("stCapDef").value=s.capDef||""}
   document.getElementById("stOv").classList.remove("hide")}
 function closeStaff(){document.getElementById("stOv").classList.add("hide");stEditId=null}
 function saveStaffForm(){const g=id=>document.getElementById(id);const nm=g("stName").value.trim();
@@ -1659,6 +1687,7 @@ function saveStaffForm(){const g=id=>document.getElementById(id);const nm=g("stN
     roles:selRoles,employ:g("stEmploy").value,wishMode:g("stWish").value,
     qual:g("stQual").value.trim(),admin:g("stAdmin").checked,
     pref:g("stPref").value||"",
+    capDef:parseFloat(g("stCapDef").value)||0,
     help:[...g("stHelp").querySelectorAll("input:checked")].map(x=>x.value).filter(uid=>uid!==g("stUnit").value)};
   if(stEditId){Object.assign(a.find(x=>x.id===stEditId),rec)}
   else{rec.id="s"+Date.now();a.push(rec)}
@@ -1920,7 +1949,7 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
   const minH=minFulltimeH(mi.days);            // 常勤の月間基準時間（31日=177h/30日=171h）
   // 勤務の傾向（事前設定）: 少なめ=非常勤の上限を下げ、候補としても選ばれにくく
   const pref=s=>shPrefOf(s.id,mi.ym);          // 名簿のデフォルト＋この月だけの上書きを反映
-  const manCap=s=>shCapOf(s.id,mi.ym);         // 今月の上限時間（管理者が入力。設定があれば厳守）
+  const manCap=s=>shCapOf(s.id,mi.ym)||(s.capDef>0?s.capDef:null); // 上限=この月の入力＞名簿の既定（どちらも厳守）
   const maxH=maxFulltimeH(mi.days);             // 常勤の法定上限（31日=177h/30日=171h）
   const capH=s=>isFulltime(s)?maxH:(pref(s)==="less"?88:128); // 非常勤=約16日分（少なめは約11日分）
   const hours={},nH={},dH={};ALL.forEach(s=>{hours[s.id]=0;nH[s.id]=0;dH[s.id]=0});
