@@ -349,6 +349,7 @@
         <button class="pbtn p-bs" id="bBs" onclick="punch('休憩開始')"><span class="em">☕</span>休憩開始</button>
         <button class="pbtn p-be" id="bBe" onclick="punch('休憩終了')"><span class="em">✅</span>休憩終了</button>
       </div>
+      <div id="pubNotice"></div>
       <h2>今日の打刻</h2>
       <div class="log" id="log"></div>
       <h2 style="margin:26px 0 8px">⏱ 時間外（残業）の申請</h2>
@@ -399,13 +400,19 @@
     <header><div class="brand" style="font-size:16px">管理メニュー<span class="adm-badge">管理者権限</span></div>
       <button class="icon-btn" onclick="logout()" aria-label="ログアウト">⏻</button></header>
     <main>
-      <div class="seg"><button id="segRoster" class="on" onclick="admTab('roster')">職員名簿</button>
+      <div class="seg"><button id="segCheck" class="on" onclick="admTab('check')">要確認</button>
+        <button id="segRoster" onclick="admTab('roster')">職員名簿</button>
         <button id="segShift" onclick="admTab('shift')">シフト作成</button>
         <button id="segAgg" onclick="admTab('agg')">集計</button>
         <button id="segDel" onclick="admTab('del')">打刻管理</button>
         <button id="segOt" onclick="admTab('ot')">時間外申請</button></div>
 
-      <div id="adm-roster">
+      <div id="adm-check">
+        <p class="lead" style="margin-top:0">今日確認したいことを1か所にまとめています。</p>
+        <div id="checkList"></div>
+      </div>
+
+      <div id="adm-roster" class="hide">
         <button class="cta adm" onclick="openStaff(null)">＋ 職員を登録する</button>
         <div id="rosterList" style="margin-top:16px"></div>
       </div>
@@ -440,7 +447,9 @@
           <b>日</b>＝日勤（朝4h＋夕4h、間は休憩）　<b>通</b>＝通し（9:00〜18:00）　<b>夜</b>＝夜勤（常勤20:00〜翌5:00／非常勤22:00〜翌5:00）<br>
           常勤は<b>公休9日</b>。月の勤務時間は<b>基準以上（31日の月176h・30日の月168h）〜法定上限以内（31日の月177h・30日の月171h）</b>に自動で収めます。不足・超過は月計が赤くなり警告が出ます。<br>
           <b>世話人か生活支援員のどちらか</b>が毎日1名以上必要。夜間支援従事者でない職員が夜勤に入ると<b>「夜間支援従事者（自動兼務）」</b>として扱われ、様式出力・集計もその職種で計上されます。</div>
-        <button class="cta adm" onclick="saveShift()">この月のシフトを保存する</button>
+        <div class="legend" id="pubState" style="margin-bottom:8px"></div>
+        <button class="cta adm" onclick="saveShift()">下書き保存（職員にはまだ見えません）</button>
+        <button class="cta" onclick="publishShift()" style="background:var(--work)">📢 この月のシフトを公開する</button>
         <button class="ghost" onclick="openPreview()">🖨 勤務形態一覧表（予定・実績プレビュー／CSV出力）</button>
       </div>
 
@@ -453,6 +462,7 @@
         <div class="weeknav"><button onclick="aggMonth(-1)" aria-label="前の月">‹</button>
           <span class="wk" id="aggWk"></span>
           <button onclick="aggMonth(1)" aria-label="次の月">›</button></div>
+        <button class="ghost" onclick="payrollCsv()" style="margin-bottom:12px">💰 給与用CSVを出力（この月・全職員）</button>
         <div id="aggList"></div>
       </div>
 
@@ -572,6 +582,8 @@
       <option value="balance">日勤・夜勤バランス</option><option value="none">勤務なし（自動作成で配置しない）</option></select></div>
     <div class="field"><label>兼務できる建物（どうしても必要な時だけ応援に行ける建物。未選択＝自分の建物のみ）</label>
       <div id="stHelp" style="display:grid;grid-template-columns:1fr 1fr;gap:7px"></div></div>
+    <div class="field"><label>有給の付与日数（年・任意。入れると残日数が出勤簿に表示されます）</label>
+      <input type="number" id="stPaid" min="0" step="0.5" placeholder="例: 10"></div>
     <div class="field"><label>月の上限時間（主に非常勤。空欄=制限なし）</label>
       <input type="number" id="stCapDef" min="0" step="0.5" placeholder="例: 80（毎月この時間までしか自動配置しない）"></div>
     <div class="field"><label>資格（任意）</label><input type="text" id="stQual" placeholder="介護福祉士 など"></div>
@@ -949,6 +961,7 @@ function pstate(){const a=getPunches();const has=t=>a.some(x=>x.type===t);
   const bs=a.filter(x=>x.type==="休憩開始").length,be=a.filter(x=>x.type==="休憩終了").length;
   return bs>be?"break":"work"}
 function todayPlan(){const d=new Date();const ym=d.getFullYear()+"-"+pad(d.getMonth()+1);
+  if(!isPub(me.office,ym))return null; /* 公開前のシフトは職員には存在しない扱い */
   const a=store.get(mshiftKey(me.id,ym),null);if(!a)return null;
   return a[d.getDate()-1]||null}
 let perrT;
@@ -992,6 +1005,12 @@ function punch(type){
     if(p&&!WORKING(p.k)){const label=p.k==="未定"?"勤務の予定が入っていません":"予定："+p.k;
       punchErr("⚠ 本日はシフト上の出勤日ではありません（"+label+"）。",true);return}
     if(p&&WORKING(p.k)){
+      /* 出勤打刻はシフト開始の15分前から（早すぎる打刻はブロック） */
+      const t15=new Date();const nowMin15=t15.getHours()*60+t15.getMinutes();
+      const sts15=kindStarts(p.k,me,p.w,t15.getDay());
+      if(sts15&&sts15.length){const first=Math.min.apply(null,sts15);
+        if(nowMin15<first-15){
+          punchErr("⚠ 出勤打刻は開始15分前（"+hm(first-15)+"）からできます（今日の予定の開始は "+hm(first)+"）。",false);return}}
       const rs=punchMismatch(p,punchPlace());
       if(rs.length){pendingPlace=punchPlace();
         document.getElementById("cnfBody").innerHTML=
@@ -1004,7 +1023,27 @@ function punch(type){
   const rec={type,time:nowHM(),edited:false,comment:""};
   const a=getPunches();a.push(rec);setPunches(a);
   renderPunch();toast(type+" を記録しました")}
+function renderPubNotice(){const el=document.getElementById("pubNotice");if(!el)return;
+  const n=store.get("notice_"+me.office,null);
+  const seen=store.get("nseen_"+me.id,"");
+  let html="";
+  if(n&&n.at&&seen!==n.at)
+    html+='<div class="perr" style="border-color:var(--work);background:var(--work-bg);color:var(--work);cursor:pointer;margin-bottom:10px" onclick="seenNotice()">📢 '+n.m+'月のシフトが公開されました。タップして確認 →</div>';
+  const t=new Date();const misses=[];
+  for(let i=1;i<=7;i++){const d=new Date(t.getFullYear(),t.getMonth(),t.getDate()-i);
+    const key="punch_"+me.id+"_"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
+    const a=store.get(key,[]);
+    if(a.some(x=>x.type==="出勤")&&!a.some(x=>x.type==="退勤"))misses.push((d.getMonth()+1)+"/"+d.getDate())}
+  if(misses.length)
+    html+='<div class="perr" style="margin-bottom:10px">⚠ '+misses.join("、")+' の退勤打刻がありません。管理者権限の方に修正を依頼してください。</div>';
+  el.innerHTML=html}
+function seenNotice(){const n=store.get("notice_"+me.office,null);
+  if(n)store.set("nseen_"+me.id,n.at);
+  const d=new Date();const cur=d.getFullYear()*12+(d.getMonth()+1);
+  const tgt=n&&n.ym?(+n.ym.slice(0,4))*12+(+n.ym.slice(5,7)):cur;
+  schOff=tgt-cur;nav("sched");schMode("me")}
 function renderPunch(){
+  renderPubNotice();
   pSid=me.id;pDate=todayKey();pRefresh=renderPunch; /* 本人ビュー=自分の当日 */
   document.getElementById("today").textContent=fmtToday();tick();
   const p=todayPlan();
@@ -1040,7 +1079,7 @@ function kindEnds(k,uid,wd){const b=bandsFor(uid,wd);
   if(k==="日勤")return b.e+240;if(k==="通し")return b.t+540;if(k==="夜勤")return 1740;return null}
 function dayBook(sid,mi,d){
   const st=getStaff().find(x=>x.id===sid)||{};
-  const planArr=store.get(mshiftKey(sid,mi.ym),null);
+  const planArr=isPub(st.office,mi.ym)?store.get(mshiftKey(sid,mi.ym),null):null;
   const cell=planArr?planArr[d-1]:null;
   const kind=cell?cell.k:null;
   const t=new Date();
@@ -1075,6 +1114,11 @@ function dayBook(sid,mi,d){
   return {in:iN,out:oN,br:br,work:Math.round(work/6)/10,night:Math.round(night/6)/10,
     place:place,off:off,partial:oN===null,late:late,early:early,status:null}}
 function hm(m){if(m===null||m===undefined)return "";return String(Math.floor(m/60))+":"+String(m%60).padStart(2,"0")}
+function fyPaid(sid){const t=new Date();const fy=t.getMonth()+1>=4?t.getFullYear():t.getFullYear()-1;
+  let c=0;for(let m=0;m<12;m++){const y=fy+((4+m)>12?1:0);const mm=((4+m-1)%12)+1;
+    const arr=store.get(mshiftKey(sid,y+"-"+String(mm).padStart(2,"0")),null);
+    if(arr)arr.forEach(x=>{if(x&&x.k==="有休")c++})}
+  return c}
 function buildBook(sid,mi,editable){
   const st=getStaff().find(x=>x.id===sid)||{};
   const otApproved={};let otT=0;
@@ -1115,7 +1159,7 @@ function buildBook(sid,mi,editable){
     <td class="tot" style="text-align:right;font-weight:700">${workT}h</td>
     <td class="tot" style="text-align:right;font-weight:700">${nightT}h</td></tr>
     <tr class="covhd"><td colspan="8" style="text-align:right;padding:6px 8px">
-      残業（承認済み） ${otT}h ／ 有給 ${paidT}日 ／ 欠勤 ${absT}日 ／ 遅刻 ${lateN}回（${lateM}分） ／ 早退 ${earlyN}回（${earlyM}分）</td></tr></tbody></table>`}
+      残業（承認済み） ${otT}h ／ 有給 ${paidT}日${(st.paid>0)?`（年度残 ${Math.max(0,Math.round((st.paid-fyPaid(sid))*10)/10)}日）`:""} ／ 欠勤 ${absT}日 ／ 遅刻 ${lateN}回（${lateM}分） ／ 早退 ${earlyN}回（${earlyM}分）</td></tr></tbody></table>`}
 /* ---- アプリ内の確認モーダル（confirm/prompt はArtifact等で動かないため使用しない） ---- */
 let askCb=null;
 function askConfirm(msg,yesLabel,cb,inputLabel){
@@ -1340,6 +1384,11 @@ function monthInfo(offset){const b=new Date();const d=new Date(b.getFullYear(),b
 function dstr(mi,day){return mi.ym+"-"+pad(day)}
 function dow(mi,day){return new Date(mi.y,mi.m-1,day).getDay()}
 function mshiftKey(staffId,ym){return "mshift2_"+staffId+"_"+ym}
+/* シフトの公開状態（下書き→公開）。職員に見えるのは公開後だけ */
+function pubKey(oid,ym){return "shpub_"+oid+"_"+ym}
+function isPub(oid,ym){return !!store.get(pubKey(oid,ym),false)}
+/* 公開後の変更履歴 */
+function shlogKey(oid,ym){return "shlog_"+oid+"_"+ym}
 function getMShift(s,mi){let a=store.get(mshiftKey(s.id,mi.ym),null);
   if(!a||a.length!==mi.days){a=Array.from({length:mi.days},()=>({k:"未定",w:s.unit}))}
   return a}
@@ -1497,6 +1546,9 @@ function buildUnitGrid(oid,mi){
 function renderSched(){const mi=monthInfo(schOff);
   document.getElementById("schWk").textContent=mi.label+mi.rel;
   const el=document.getElementById("schedList");
+  const gateOid=(schViewMode==="me")?me.office:(document.getElementById("unitOffice").value||me.office);
+  if(!isPub(gateOid,mi.ym)&&!(me&&me.admin)){
+    document.getElementById("schedList").innerHTML='<div class="empty" style="border:1px solid var(--line);border-radius:14px">この月のシフトはまだ公開されていません。<br>公開されるとここに表示され、お知らせが届きます。</div>';return}
   if(schViewMode==="unit"){
     const oid=document.getElementById("unitOffice").value||me.office;
     const g=buildUnitGrid(oid,mi);
@@ -1536,12 +1588,55 @@ function renderSched(){const mi=monthInfo(schOff);
   el.innerHTML=html}
 
 /* ================= admin ================= */
-function admTab(t){["roster","shift","agg","del","ot"].forEach(x=>{
+function admTab(t){["check","roster","shift","agg","del","ot"].forEach(x=>{
     document.getElementById("seg"+x[0].toUpperCase()+x.slice(1)).classList.toggle("on",x===t);
     document.getElementById("adm-"+x).classList.toggle("hide",x!==t)});
-  if(t==="roster")renderRoster(); else if(t==="shift")initShift();
+  if(t==="check")renderCheckList(); else if(t==="roster")renderRoster(); else if(t==="shift")initShift();
   else if(t==="agg")initAgg(); else if(t==="ot")renderOTAdm();
   else{initAdmPunch();renderDelLog()}}
+/* ---- 要確認リスト（管理者のホーム） ---- */
+function renderCheckList(){const el=document.getElementById("checkList");if(!el)return;
+  const t=new Date();const staff=activeStaff();
+  const sec=[];
+  /* 1) 未退勤（過去7日） */
+  const miss=[];
+  staff.forEach(st=>{for(let i=1;i<=7;i++){
+    const d=new Date(t.getFullYear(),t.getMonth(),t.getDate()-i);
+    const a=store.get("punch_"+st.id+"_"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(),[]);
+    if(a.some(x=>x.type==="出勤")&&!a.some(x=>x.type==="退勤"))miss.push({st,d:(d.getMonth()+1)+"/"+d.getDate()})}});
+  sec.push({t:"⏰ 退勤打刻がない日（過去7日）",n:miss.length,
+    b:miss.length?miss.map(x=>`<div class="rq"><span class="rd">${x.d}</span><b>${x.st.name}</b><span class="rt">出勤のみで退勤がありません → 打刻管理から追加してください</span></div>`).join(""):""});
+  /* 2) シフト外出勤（過去7日） */
+  const offs=[];
+  staff.forEach(st=>{for(let i=0;i<=7;i++){
+    const d=new Date(t.getFullYear(),t.getMonth(),t.getDate()-i);
+    const a=store.get("punch_"+st.id+"_"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(),[]);
+    a.forEach(x=>{if(x.type==="出勤"&&x.off)offs.push({st,d:(d.getMonth()+1)+"/"+d.getDate(),time:x.time})})}});
+  sec.push({t:"🚨 シフト外の出勤（過去7日）",n:offs.length,
+    b:offs.length?offs.map(x=>`<div class="rq"><span class="rd">${x.d}</span><b>${x.st.name}</b><span class="rt">${x.time} にシフト外出勤 → 事情を確認してください</span></div>`).join(""):""});
+  /* 3) 時間外申請の承認待ち */
+  let pend=0;staff.forEach(st=>{pend+=getOT(st.id).filter(x=>x.status==="pending").length});
+  sec.push({t:"⏱ 時間外申請の承認待ち",n:pend,
+    b:pend?`<div class="rq"><span class="rt">「時間外申請」タブで確認・承認してください（${pend}件）</span></div>`:""});
+  /* 4) 残業の月合計（36協定の目安45h） */
+  const ym=monthInfo(0).ym;
+  const otSum=staff.map(st=>({st,h:getOT(st.id).filter(x=>x.status==="approved"&&x.date&&x.date.slice(0,7)===ym).reduce((a,x)=>a+x.h,0)}))
+    .filter(x=>x.h>=36);
+  sec.push({t:"⚖ 残業が月45時間に接近・超過（承認済み合計）",n:otSum.length,
+    b:otSum.length?otSum.map(x=>`<div class="rq"><b>${x.st.name}</b><span class="rt">今月 ${Math.round(x.h*10)/10}h ${x.h>45?'<span style="color:var(--danger);font-weight:700">／ 45h超過</span>':"（45hまで残り"+Math.round((45-x.h)*10)/10+"h）"}</span></div>`).join(""):""});
+  /* 5) 有給5日義務（年度=4月起点・常勤） */
+  const fy=t.getMonth()+1>=4?t.getFullYear():t.getFullYear()-1;
+  const paidCnt=st=>{let c=0;
+    for(let m=0;m<12;m++){const y=fy+((4+m)>12?1:0);const mm=((4+m-1)%12)+1;
+      const arr=store.get(mshiftKey(st.id,y+"-"+String(mm).padStart(2,"0")),null);
+      if(arr)arr.forEach(x=>{if(x&&x.k==="有休")c++})}
+    return c};
+  const p5=staff.filter(st=>isFulltime(st)).map(st=>({st,c:paidCnt(st)})).filter(x=>x.c<5);
+  sec.push({t:"🌴 有給が年度5日に届いていない常勤（"+fy+"年度）",n:p5.length,
+    b:p5.length?p5.map(x=>`<div class="rq"><b>${x.st.name}</b><span class="rt">年度内の有給 ${x.c}日（義務は5日）</span></div>`).join(""):""});
+  el.innerHTML=sec.map(x=>`<div class="rqwrap" style="margin-bottom:10px"><div class="rqhd" style="cursor:default">${x.t}
+      <span class="cap" ${x.n?'style="color:var(--danger)"':''}>${x.n}件</span></div>
+    ${x.n?`<div class="rqbody">${x.b}</div>`:'<div class="rqbody"><div class="rq" style="border-top:none;color:var(--sub)">問題ありません。</div></div>'}</div>`).join("")}
 
 /* ---- 管理者による打刻の修正・削除・追加（出勤簿の表から。過去分も可） ---- */
 let admPOff=0,apDay=null;
@@ -1671,11 +1766,11 @@ function openStaff(id){stEditId=id;const isNew=!id;
   g("stHelp").innerHTML=UNITS.filter(u=>!u.closed).map(u=>
     `<label class="chk" style="padding:9px 11px;background:var(--off-bg)"><input type="checkbox" value="${u.id}" ${curHelp.indexOf(u.id)>=0?'checked':''}><span class="t" style="font-size:12.5px">${u.name}</span></label>`).join("");
   if(isNew){g("stName").value="";g("stOffice").value=curOffice||activeOffices()[0].id;fillUnitSelect();
-    g("stEmploy").value="常勤専従";g("stWish").value="off";g("stQual").value="";g("stAdmin").checked=false;g("stPref").value="";g("stCapDef").value=""}
+    g("stEmploy").value="常勤専従";g("stWish").value="off";g("stQual").value="";g("stAdmin").checked=false;g("stPref").value="";g("stCapDef").value="";g("stPaid").value=""}
   else{const s=getStaff().find(x=>x.id===id);g("stName").value=s.name;g("stOffice").value=s.office;fillUnitSelect();
     g("stUnit").value=s.unit;g("stEmploy").value=s.employ||"常勤専従";
     g("stWish").value=isWorkWish(s)?"work":"off";
-    g("stQual").value=s.qual||"";g("stAdmin").checked=!!s.admin;g("stPref").value=s.pref||"";g("stCapDef").value=s.capDef||""}
+    g("stQual").value=s.qual||"";g("stAdmin").checked=!!s.admin;g("stPref").value=s.pref||"";g("stCapDef").value=s.capDef||"";g("stPaid").value=s.paid||""}
   document.getElementById("stOv").classList.remove("hide")}
 function closeStaff(){document.getElementById("stOv").classList.add("hide");stEditId=null}
 function saveStaffForm(){const g=id=>document.getElementById(id);const nm=g("stName").value.trim();
@@ -1688,6 +1783,7 @@ function saveStaffForm(){const g=id=>document.getElementById(id);const nm=g("stN
     qual:g("stQual").value.trim(),admin:g("stAdmin").checked,
     pref:g("stPref").value||"",
     capDef:parseFloat(g("stCapDef").value)||0,
+    paid:parseFloat(g("stPaid").value)||0,
     help:[...g("stHelp").querySelectorAll("input:checked")].map(x=>x.value).filter(uid=>uid!==g("stUnit").value)};
   if(stEditId){Object.assign(a.find(x=>x.id===stEditId),rec)}
   else{rec.id="s"+Date.now();a.push(rec)}
@@ -1718,7 +1814,7 @@ function renderShift(){if(typeof endPaint==="function"&&paintMode)endPaint();
   B={};officeStaff(curShOffice).forEach(s=>{B[s.id]=getMShift(s,mi).map(c=>({k:c.k,w:c.w}))});
   getStaff().filter(s=>s.office!==curShOffice&&(s.help||[]).some(uid=>officeUnits(curShOffice).some(u=>u.id===uid)))
     .forEach(g=>{B[g.id]=getMShift(g,mi).map(c=>({k:c.k,w:c.w}))}); /* 兼務者も編集対象に */
-  renderKibClosePanel();renderReqPanel();renderShiftGrid()}
+  renderKibClosePanel();renderReqPanel();renderShiftGrid();renderPubState()}
 /* ---- 希望休の受付締切（施設ごと・翌月分） ---- */
 function renderKibClosePanel(){const el=document.getElementById("kibClosePanel");if(!el)return;
   const nmi=kibouTargetMi();const r=getKibClose(curShOffice,nmi.ym);const closed=isKibouClosed(curShOffice);
@@ -1933,9 +2029,37 @@ function closeCell(){document.getElementById("cellOv").classList.add("hide")}
 function clearMonth(){const mi=monthInfo(admOff);
   officeStaff(curShOffice).forEach(s=>{B[s.id]=Array.from({length:mi.days},()=>({k:"未定",w:s.unit}))});
   shDirty=true;renderShiftGrid();toast("白紙に戻しました（保存するまで確定しません）")}
-function saveShift(){const mi=monthInfo(admOff);
+function saveShift(silent){const mi=monthInfo(admOff);
+  if(isPub(curShOffice,mi.ym)){ /* 公開後の変更は誰が・いつ・どこを変えたか記録する */
+    const log=store.get(shlogKey(curShOffice,mi.ym),[]);
+    Object.keys(B).forEach(sid=>{
+      const oldA=store.get(mshiftKey(sid,mi.ym),null);if(!oldA)return;
+      const st=getStaff().find(x=>x.id===sid);
+      for(let d=1;d<=mi.days;d++){
+        const o=oldA[d-1]||{k:"休"};const n=B[sid][d-1]||{k:"休"};
+        const sig=c=>c.k+"|"+(c.w||"")+"|"+(c.seg?JSON.stringify(c.seg):"")+"|"+(c.note||"");
+        if(sig(o)!==sig(n))log.push({at:nowStamp(),by:me.name,sid:sid,name:st?st.name:sid,d:d,
+          from:o.k+(WORKING(o.k)?"@"+unitShort(o.w):""),to:n.k+(WORKING(n.k)?"@"+unitShort(n.w):"")})}});
+    store.set(shlogKey(curShOffice,mi.ym),log.slice(-500))}
   Object.keys(B).forEach(sid=>store.set(mshiftKey(sid,mi.ym),B[sid]));
-  shDirty=false;toast(officeName(curShOffice)+"の"+mi.m+"月シフトを保存しました")}
+  shDirty=false;renderPubState();
+  if(!silent)toast(officeName(curShOffice)+"の"+mi.m+"月シフトを"+(isPub(curShOffice,mi.ym)?"保存しました（公開中のため職員にすぐ反映されます）":"下書き保存しました（公開するまで職員には見えません）"))}
+function publishShift(){const mi=monthInfo(admOff);
+  askConfirm(officeName(curShOffice)+"の"+mi.m+"月シフトを公開しますか？ 公開すると職員の「勤務予定」に表示され、打刻のチェックにも使われます。","公開する",()=>{
+    saveShift(true);
+    store.set(pubKey(curShOffice,mi.ym),true);
+    store.set("notice_"+curShOffice,{ym:mi.ym,m:mi.m,at:nowStamp()});
+    renderPubState();
+    toast(mi.m+"月シフトを公開しました。職員の画面にお知らせが表示されます")})}
+function renderPubState(){const el=document.getElementById("pubState");if(!el)return;
+  const mi=monthInfo(admOff);
+  el.innerHTML=isPub(curShOffice,mi.ym)
+    ?'<span class="badge-e" style="color:var(--work);background:var(--work-bg)">公開中</span> 変更は保存するとすぐ職員に反映され、履歴に残ります　<button class="mini" onclick="renderShLog()">変更履歴</button>'
+    :'<span class="badge-e">下書き</span> 職員にはまだ見えません。できあがったら「公開する」を押してください'}
+function renderShLog(){const mi=monthInfo(admOff);
+  const log=store.get(shlogKey(curShOffice,mi.ym),[]).slice().reverse();
+  if(!log.length){toast("公開後の変更はまだありません");return}
+  askConfirm("公開後の変更履歴（新しい順・最大20件） "+log.slice(0,20).map(x=>x.at+" "+x.by+"： "+x.name+" "+mi.m+"/"+x.d+" "+x.from+"→"+x.to).join(" ／ "),"閉じる",()=>{})}
 
 /* ---- auto generation ---- */
 function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeStaff(curShOffice);
@@ -2144,9 +2268,14 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
     let guard=0;
     const mc=manCap(s);const tgt=mc?Math.min(minH,mc):minH; // 上限が基準より低ければ上限まで
     while(hours[s.id]<tgt&&guard++<62){
-      const okH=h=>hours[s.id]+h<=maxH&&(!mc||hours[s.id]+h<=mc);
-      const full=okH(8),half=!full&&okH(4); // 8hが入らない端数は半日(4h)で埋める（夜勤9h混じり対策）
-      if(!full&&!half)break;
+      const capAll=Math.min(maxH,(mc||1e9));
+      const room=capAll-hours[s.id];          // あと何時間まで入れられるか
+      const need=tgt-hours[s.id];             // 基準まであと何時間必要か
+      let addH=0;
+      if(room>=8)addH=8;
+      else if(room>=4)addH=4;                 // 半日
+      else if(need>0&&need<=room)addH=Math.max(0.5,Math.ceil(need*2)/2); // 端数は必要分だけの短時間勤務（朝のみ）
+      if(addH<=0||addH>room)break;
       let best=null,bestScore=1e9;
       for(let d=1;d<=mi.days;d++){
         if(!free(s,d))continue;
@@ -2157,7 +2286,11 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
         +((d<mi.days&&B[s.id][d].k==="夜勤")?50:0); // 翌日が夜勤の日も避けめに
         if(score<bestScore){bestScore=score;best=d}}
       if(best===null)break;   // 連勤制限内で足せる日が無い→不足は警告に出る
-      setCell(s,best,full?reqKindOf(best):"半日")}});
+      if(addH===8)setCell(s,best,reqKindOf(best));
+      else if(addH===4)setCell(s,best,"半日");
+      else{ /* 朝だけの日勤（例: 2h）で基準ちょうどに合わせる */
+        B[s.id][best-1]={k:"日勤",w:homeUnitOf(s),seg:{mh:addH,eh:0,mw:homeUnitOf(s),ew:homeUnitOf(s)}};
+        hours[s.id]+=addH;dH[s.id]+=addH}}});
   renderShiftGrid();
   toast("希望休・出勤条件・夜勤・常勤"+minH+"hを考慮して自動作成しました。警告が出ている場合は調整してください")}
 
@@ -2321,6 +2454,25 @@ function renderMWList(){const mi=monthInfo(admOff);const rows=[];
 
 /* ---- aggregation ---- */
 function aggMonth(d){aggOff+=d;renderAgg()}
+function payrollCsv(){const mi=monthInfo(aggOff);
+  const rows=[["氏名","事業所","拠点","勤務形態","出勤日数","実働h","夜勤回数","深夜h","残業承認h","有給日数","欠勤日数","遅刻回数","遅刻分","早退回数","早退分"]];
+  loginSort(activeStaff()).forEach(st=>{
+    let days=0,work=0,night=0,nightCnt=0,paid=0,abs=0,lateN=0,lateM=0,earlyN=0,earlyM=0;
+    for(let d=1;d<=mi.days;d++){const b=dayBook(st.id,mi,d);if(!b)continue;
+      if(b.work>0){days++;work+=b.work;night+=b.night}
+      if(b.status==="有給")paid++;
+      if(b.status==="欠勤")abs++;
+      if(b.late>0){lateN++;lateM+=b.late}
+      if(b.early>0){earlyN++;earlyM+=b.early}}
+    const planArr=store.get(mshiftKey(st.id,mi.ym),null);
+    if(planArr)planArr.forEach(c=>{if(c&&c.k==="夜勤")nightCnt++});
+    const ot=getOT(st.id).filter(x=>x.status==="approved"&&x.date&&x.date.slice(0,7)===mi.ym).reduce((a,x)=>a+x.h,0);
+    rows.push([st.name,officeName(st.office),unitName(st.unit),st.employ||"",days,Math.round(work*10)/10,nightCnt,Math.round(night*10)/10,Math.round(ot*10)/10,paid,abs,lateN,lateM,earlyN,earlyM])});
+  const csv="\ufeff"+rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\r\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download="給与用_"+mi.ym+".csv";a.click();
+  toast("給与用CSVを出力しました（"+mi.label+"）")}
 function initAgg(){aggOff=0;renderAgg()}
 function renderAgg(){const mi=monthInfo(aggOff);document.getElementById("aggWk").textContent=mi.label+mi.rel;
   const staff=activeStaff();
