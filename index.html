@@ -887,7 +887,7 @@ const VIEWS=["login","pin","punch","kibou","sched","admin"];
 function show(v){VIEWS.forEach(x=>document.getElementById("view-"+x).classList.toggle("hide",x!==v));
   document.getElementById("nav").classList.toggle("hide",!["punch","kibou","sched","admin"].includes(v));window.scrollTo(0,0)}
 function nav(v){show(v);document.querySelectorAll(".nv").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
-  if(v==="kibou")renderKibou(); if(v==="sched"){schOff=0;renderSched()} if(v==="admin")admTab('roster')}
+  if(v==="punch")renderPunch(); if(v==="kibou")renderKibou(); if(v==="sched"){schOff=0;renderSched()} if(v==="admin")admTab('check')}
 
 /* ================= login ================= */
 function renderCompany(){const el=document.getElementById("coSel");
@@ -1041,7 +1041,7 @@ function seenNotice(){const n=store.get("notice_"+me.office,null);
   if(n)store.set("nseen_"+me.id,n.at);
   const d=new Date();const cur=d.getFullYear()*12+(d.getMonth()+1);
   const tgt=n&&n.ym?(+n.ym.slice(0,4))*12+(+n.ym.slice(5,7)):cur;
-  schOff=tgt-cur;nav("sched");schMode("me")}
+  nav("sched");schOff=tgt-cur;schMode("me")} /* navがschOffを0に戻すため、後から設定する */
 function renderPunch(){
   renderPubNotice();
   pSid=me.id;pDate=todayKey();pRefresh=renderPunch; /* 本人ビュー=自分の当日 */
