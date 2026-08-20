@@ -554,6 +554,17 @@
   </div>
 </div>
 
+<!-- ===== GENERIC CONFIRM MODAL（confirm/prompt代替。公開ページでは標準ダイアログが使えない） ===== -->
+<div id="askOv" class="ov hide">
+  <div class="sheet">
+    <h3 id="askTitle">確認</h3>
+    <p class="sub" id="askMsg" style="white-space:pre-line"></p>
+    <div class="field hide" id="askInputWrap"><label id="askInputLabel"></label><textarea id="askInput" rows="2"></textarea></div>
+    <button class="cta" id="askYesBtn" onclick="askYes()">はい</button>
+    <button class="ghost" onclick="closeAsk()">いいえ（やめる）</button>
+  </div>
+</div>
+
 <!-- ===== OVERTIME APPLY MODAL ===== -->
 <div id="otOv" class="ov hide">
   <div class="sheet">
@@ -1022,6 +1033,22 @@ function buildBook(sid,mi,editable){
     <td class="tot" style="text-align:right;font-weight:700">${nightT}h</td></tr>
     <tr class="covhd"><td colspan="8" style="text-align:right;padding:6px 8px">
       残業（承認済み） ${otT}h ／ 有給 ${paidT}日 ／ 欠勤 ${absT}日 ／ 遅刻 ${lateN}回（${lateM}分） ／ 早退 ${earlyN}回（${earlyM}分）</td></tr></tbody></table>`}
+/* ---- アプリ内の確認モーダル（confirm/prompt はArtifact等で動かないため使用しない） ---- */
+let askCb=null;
+function askConfirm(msg,yesLabel,cb,inputLabel){
+  document.getElementById("askMsg").textContent=msg;
+  document.getElementById("askYesBtn").textContent=yesLabel||"はい";
+  const iw=document.getElementById("askInputWrap");
+  if(inputLabel){iw.classList.remove("hide");
+    document.getElementById("askInputLabel").textContent=inputLabel;
+    document.getElementById("askInput").value=""}
+  else iw.classList.add("hide");
+  askCb=cb;
+  document.getElementById("askOv").classList.remove("hide")}
+function closeAsk(){document.getElementById("askOv").classList.add("hide");askCb=null}
+function askYes(){const cb=askCb;const val=document.getElementById("askInput").value.trim();
+  closeAsk();if(cb)cb(val)}
+
 /* ---- 時間外（残業）の申請・承認。承認された分だけが残業になる ---- */
 function otKey(sid){return "ot_"+sid}
 function getOT(sid){return store.get(otKey(sid),[])}
@@ -1046,9 +1073,9 @@ function submitOT(){const date=document.getElementById("otDate").value;
   a.push({id:"o"+Date.now(),date:date,h:Math.round(h*10)/10,reason:reason,status:"pending",at:nowStamp()});
   setOT(me.id,a);closeOT();renderOTMine();
   toast("時間外を申請しました（承認されるまで残業にはなりません）")}
-function cancelOT(id){if(!confirm("この申請を取り下げますか？"))return;
+function cancelOT(id){askConfirm("この申請を取り下げますか？","取り下げる",()=>{
   setOT(me.id,getOT(me.id).filter(x=>!(x.id===id&&x.status==="pending")));
-  renderOTMine();toast("申請を取り下げました")}
+  renderOTMine();toast("申請を取り下げました")})}
 function otBadge(st){return st==="approved"?'<span class="badge-e" style="color:var(--work);background:var(--work-bg)">承認済み</span>'
   :st==="rejected"?'<span class="badge-e" style="color:var(--danger);background:var(--danger-bg)">却下</span>'
   :'<span class="badge-e">申請中</span>'}
@@ -1083,12 +1110,13 @@ function renderOTAdm(){const el=document.getElementById("otAdmList");if(!el)retu
         <div class="rl" style="white-space:normal">📝 ${r.x.reason}</div></span></div>`).join("")
     :'<div class="empty" style="border:1px solid var(--line);border-radius:12px">まだありません。</div>')}
 function decideOT(sid,id,st){
-  let note="";
-  if(st==="rejected"){note=prompt("却下の理由（本人に表示されます・任意）")||""}
-  const a=getOT(sid);const x=a.find(y=>y.id===id);if(!x||x.status!=="pending")return;
-  x.status=st;x.by=me.name;x.decidedAt=nowStamp();if(note)x.note=note;
-  setOT(sid,a);renderOTAdm();
-  toast(st==="approved"?"承認しました。本人の出勤簿に残業として表示されます":"却下しました")}
+  const apply=note=>{
+    const a=getOT(sid);const x=a.find(y=>y.id===id);if(!x||x.status!=="pending")return;
+    x.status=st;x.by=me.name;x.decidedAt=nowStamp();if(note)x.note=note;
+    setOT(sid,a);renderOTAdm();
+    toast(st==="approved"?"承認しました。本人の出勤簿に残業として表示されます":"却下しました")};
+  if(st==="rejected")askConfirm("この申請を却下しますか？","却下する",apply,"却下の理由（本人に表示されます・任意）");
+  else apply("")}
 function renderMyBook(){const el=document.getElementById("myBook");if(!el)return;
   const mi=monthInfo(0);
   document.getElementById("myBookTitle").textContent="今月の出勤簿（"+mi.label+"）";
@@ -1531,10 +1559,16 @@ function delStaff(){const a=getStaff().filter(s=>s.id!==stEditId);saveStaffList(
 
 /* ---- shift builder (office grid) ---- */
 let shDirty=false;
-function admMonth(d){if(shDirty&&!confirm("保存していない変更があります。破棄して月を移動しますか？"))return;
+function admMonth(d){
+  if(shDirty){askConfirm("保存していない変更があります。破棄して月を移動しますか？","破棄して移動する",
+    ()=>{shDirty=false;admOff+=d;renderShift()});return}
   shDirty=false;admOff+=d;renderShift()}
-function onShOffice(){if(shDirty&&!confirm("保存していない変更があります。破棄して事業所を切り替えますか？")){
-    document.getElementById("shOffice").value=curShOffice;return}
+function onShOffice(){const sel=document.getElementById("shOffice");const nv=sel.value;
+  if(shDirty&&nv!==curShOffice){
+    sel.value=curShOffice; /* いったん戻し、「はい」で切り替える */
+    askConfirm("保存していない変更があります。破棄して事業所を切り替えますか？","破棄して切り替える",
+      ()=>{shDirty=false;sel.value=nv;renderShift()});
+    return}
   shDirty=false;renderShift()}
 function initShift(){const sel=document.getElementById("shOffice");
   sel.innerHTML=activeOffices().map(o=>`<option value="${o.id}">${o.name}</option>`).join("");
