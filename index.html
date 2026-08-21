@@ -2135,6 +2135,7 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
   // 連勤の絶対制限: 前後をつなげて5連勤を超える割り当ては行わない（埋まらない分は警告として見せる）
   const avail=(s,d,m,grp)=>free(s,d)&&avOK(s,d,grp)&&prefOK(s,grp)&&runIf(s,d)<=5
     &&(grp==="night"||m>=2||!(d>1&&B[s.id][d-2].k==="夜勤")) // 夜勤明けの翌日は日中に入れない（どうしても埋まらない時だけ許す）
+    &&(grp!=="night"||!isFulltime(s)||isWorkWish(s)||nH[s.id]<81) // 常勤の夜勤は月9回まで（明け休み9日=公休9日）
     &&(!isFulltime(s)||isWorkWish(s)||hours[s.id]+(grp==="night"?kindH("夜勤",s):8)<=maxH) // 常勤は法定上限(177h/171h)をどのモードでも超えない
     &&(manCap(s)?hours[s.id]+(grp==="night"?kindH("夜勤",s):8)<=manCap(s) // 上限入力あり=絶対に超えない
                 :((m>=2&&!guestIds.has(s.id))||hours[s.id]<capH(s))) // 兼務者は常に上限内で
@@ -2175,6 +2176,8 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
   const nsReg=nightStaff.filter(s=>!isWorkWish(s));
   const ftOther=ALL.filter(s=>isFulltime(s)&&!hasRole(s,"夜間支援従事者"));
   const ptAll=ALL.filter(s=>!isFulltime(s)&&!hasRole(s,"夜間支援従事者"));
+  const ftAllN=ALL.filter(s=>isFulltime(s)&&!isWorkWish(s));   // 夜勤も回す常勤（役職や夜勤専門かは問わない）
+  const ptOtherN=ALL.filter(s=>!isFulltime(s)&&!isWorkWish(s)); // 通常提出型の非常勤（自動兼務でPT補完）
   const own=(p,u)=>p.filter(s=>s.unit===u.id),oth=(p,u)=>p.filter(s=>s.unit!==u.id&&canHelpAt(s,u.id));
   const hasN=(u,d)=>ALL.some(s=>B[s.id][d-1].k==="夜勤"&&B[s.id][d-1].w===u.id);
   for(let d=1;d<=mi.days;d++){
@@ -2196,33 +2199,31 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
       if(cand)setCell(cand,d,reqK,u.id)});
 
     if(nightStaff.length){
-      // 第1段: 建物内の夜勤専門職員（通常型→勤務可提出）
+      // 第1段: その棟の本務の常勤で回す（日勤メインで夜勤も。役職・夜勤専門かは問わない）
       units.forEach(u=>{
         if(hasN(u,d))return;
         let c=null;
-        for(let m=0;m<3&&!c;m++){
-          c=pickM(nonMgr(own(nsReg,u)),d,m,"night")||pickM(own(nsAvail,u),d,m,"night")}
+        for(let m=0;m<3&&!c;m++){c=pickM(nonMgr(own(ftAllN,u)),d,m,"night")}
         if(c)setCell(c,d,"夜勤",u.id)});
-      // 第2段: 他の建物・他事業所の夜勤専門職員（兼務登録がある人だけ。夜勤は専門職員を優先して回す）
+      // 第2段: 常勤で足りない分は、その棟のパート（勤務可提出→その他の非常勤）
       units.forEach(u=>{
         if(hasN(u,d))return;
         let c=null;
         for(let m=0;m<3&&!c;m++){
-          c=pickM(nonMgr(oth(nsReg,u)),d,m,"night")||pickM(oth(nsAvail,u),d,m,"night")}
+          c=pickM(own(nsAvail,u),d,m,"night")||pickM(nonMgr(own(ptOtherN,u)),d,m,"night")}
         if(c)setCell(c,d,"夜勤",u.id)});
-      // 第3段: 建物内の職員の自動兼務（常勤→パート）
+      // 第3段: 他の建物・他事業所の常勤（兼務登録がある人だけ）
       units.forEach(u=>{
         if(hasN(u,d))return;
         let c=null;
-        for(let m=0;m<3&&!c;m++){
-          c=pickM(nonMgr(own(ftOther,u)),d,m,"night")||pickM(nonMgr(own(ptAll,u)),d,m,"night")}
+        for(let m=0;m<3&&!c;m++){c=pickM(nonMgr(oth(ftAllN,u)),d,m,"night")}
         if(c)setCell(c,d,"夜勤",u.id)});
-      // 第4段: 他の建物からの自動兼務（常勤→パート）
+      // 第4段: 他の建物・他事業所のパート（勤務可提出→その他）
       units.forEach(u=>{
         if(hasN(u,d))return;
         let c=null;
         for(let m=0;m<3&&!c;m++){
-          c=pickM(nonMgr(oth(ftOther,u)),d,m,"night")||pickM(nonMgr(oth(ptAll,u)),d,m,"night")}
+          c=pickM(oth(nsAvail,u),d,m,"night")||pickM(nonMgr(oth(ptOtherN,u)),d,m,"night")}
         if(c)setCell(c,d,"夜勤",u.id)});
       // 第5段: どうしても足りない建物だけ管理者・サビ管を投入
       units.forEach(u=>{
