@@ -603,6 +603,8 @@
     <div class="field"><label>建物</label><select id="uhUnit" onchange="renderUH()"></select></div>
     <div id="uhBody" style="overflow-x:auto"></div>
     <button class="mini" onclick="uhCopyMon()" style="margin:8px 0">月曜の値を全曜日にコピー</button>
+    <div class="field" style="margin-top:8px"><label>常勤の夜勤 上限回数／月（全社共通。公休9日のうち夜勤明け休みをこの回数までにし、純粋な休みを残します）</label>
+      <input type="number" id="uhFtnMax" min="1" max="9" step="1"></div>
     <button class="cta adm" onclick="saveUH()">この建物の設定を保存する</button>
     <button class="ghost" onclick="closeUH()">閉じる</button>
   </div>
@@ -1386,6 +1388,8 @@ function dow(mi,day){return new Date(mi.y,mi.m-1,day).getDay()}
 function mshiftKey(staffId,ym){return "mshift2_"+staffId+"_"+ym}
 /* シフトの公開状態（下書き→公開）。職員に見えるのは公開後だけ */
 function pubKey(oid,ym){return "shpub_"+oid+"_"+ym}
+/* 常勤の夜勤上限（月・全社共通）。公休9日のうち夜勤明け休みは一部にとどめ、純粋な休みを残す */
+function ftNightMax(){const v=store.get("ftnmax",6);return (v>0&&v<=9)?v:6}
 function isPub(oid,ym){return !!store.get(pubKey(oid,ym),false)}
 /* 公開後の変更履歴 */
 function shlogKey(oid,ym){return "shlog_"+oid+"_"+ym}
@@ -1910,6 +1914,7 @@ function tp(v){if(!v)return null;const a=v.split(":");return (+a[0])*60+(+a[1])}
 function openUH(){const sel=document.getElementById("uhUnit");
   sel.innerHTML=officeUnits(curShOffice).map(u=>`<option value="${u.id}">${u.name}</option>`).join("");
   renderUH();
+  document.getElementById("uhFtnMax").value=ftNightMax();
   document.getElementById("uhOv").classList.remove("hide")}
 function closeUH(){document.getElementById("uhOv").classList.add("hide")}
 function renderUH(){const uid=document.getElementById("uhUnit").value;if(!uid)return;
@@ -1932,8 +1937,10 @@ function saveUH(){const uid=document.getElementById("uhUnit").value;if(!uid)retu
     if(e<m+240){toast(WD[wd]+"曜: 夕の開始が朝の終了（"+t2(m+240)+"）より前になっています");return}
     map[wd]={m:m,e:e,t:t}}
   store.set("unithours_"+uid,map);
+  const fm=parseInt(document.getElementById("uhFtnMax").value,10);
+  if(fm>=1&&fm<=9)store.set("ftnmax",fm);
   closeUH();renderShiftGrid();
-  toast(unitName(uid)+"の勤務時間を保存しました")}
+  toast(unitName(uid)+"の勤務時間を保存しました（常勤の夜勤上限: 月"+ftNightMax()+"回）")}
 
 /* 手直し後の配置チェック（✔ チェックボタン。警告と同じ判定を明示的に実行し、問題なしも表示する） */
 function checkShift(){const mi=monthInfo(admOff);
@@ -2135,7 +2142,7 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
   // 連勤の絶対制限: 前後をつなげて5連勤を超える割り当ては行わない（埋まらない分は警告として見せる）
   const avail=(s,d,m,grp)=>free(s,d)&&avOK(s,d,grp)&&prefOK(s,grp)&&runIf(s,d)<=5
     &&(grp==="night"||m>=2||!(d>1&&B[s.id][d-2].k==="夜勤")) // 夜勤明けの翌日は日中に入れない（どうしても埋まらない時だけ許す）
-    &&(grp!=="night"||!isFulltime(s)||isWorkWish(s)||nH[s.id]<81) // 常勤の夜勤は月9回まで（明け休み9日=公休9日）
+    &&(grp!=="night"||!isFulltime(s)||isWorkWish(s)||nH[s.id]<ftNightMax()*9) // 常勤の夜勤は月の上限回数まで（既定6回＝明け休6＋純粋な休み3）
     &&(!isFulltime(s)||isWorkWish(s)||hours[s.id]+(grp==="night"?kindH("夜勤",s):8)<=maxH) // 常勤は法定上限(177h/171h)をどのモードでも超えない
     &&(manCap(s)?hours[s.id]+(grp==="night"?kindH("夜勤",s):8)<=manCap(s) // 上限入力あり=絶対に超えない
                 :((m>=2&&!guestIds.has(s.id))||hours[s.id]<capH(s))) // 兼務者は常に上限内で
