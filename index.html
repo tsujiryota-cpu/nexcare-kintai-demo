@@ -2150,6 +2150,7 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
   const avail=(s,d,m,grp)=>free(s,d)&&avOK(s,d,grp)&&prefOK(s,grp)&&runIf(s,d)<=5
     &&(grp==="night"||m>=2||!(d>1&&B[s.id][d-2].k==="夜勤")) // 夜勤明けの翌日は日中に入れない（どうしても埋まらない時だけ許す）
     &&(grp!=="night"||!isFulltime(s)||isWorkWish(s)||nH[s.id]<ftNightMax()*9) // 常勤の夜勤は月の上限回数まで（既定6回＝明け休6＋純粋な休み3）
+    &&(grp!=="night"||((d<=1||B[s.id][d-2].k!=="夜勤")&&(d>=mi.days||B[s.id][d].k!=="夜勤"))) // 夜勤は連日続けない（絶対制約）
     &&(!isFulltime(s)||isWorkWish(s)||hours[s.id]+(grp==="night"?kindH("夜勤",s):8)<=maxH) // 常勤は法定上限(177h/171h)をどのモードでも超えない
     &&(manCap(s)?hours[s.id]+(grp==="night"?kindH("夜勤",s):8)<=manCap(s) // 上限入力あり=絶対に超えない
                 :((m>=2&&!guestIds.has(s.id))||hours[s.id]<capH(s))) // 兼務者は常に上限内で
