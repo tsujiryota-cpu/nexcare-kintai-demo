@@ -1436,11 +1436,16 @@ function buildGrid(oid,mi,buf,editable){
         cells+=`<td class="cell lk" title="この日は${unitName(c.w)}などで${c.k}。ここから変えるには、先にそちらの行で休にしてください">${km}<span class="lkx">${dest}</span></td>`}
       else{
         const dispSeg=(typeof document!=="undefined"&&document.getElementById("shDisp")&&document.getElementById("shDisp").value==="seg");
-        let ab;
+        let ab,splitHint="";
         if(here){
           const sg=segOf(c);
           if(sg){const pm=sg.mh>0&&sg.mw===u.id,pe=sg.eh>0&&sg.ew===u.id;
-            if(dispSeg)ab=`<span style="font-size:8px;line-height:1.15;display:inline-block">${pm?"朝"+sg.mh:""}${pm&&pe?"<br>":""}${pe?"夕"+sg.eh:""}</span>`;
+            /* 朝と夕が別の建物のときは、残り半分の行き先をマスの下に表示（例: 夕→医大） */
+            if(pm&&!pe&&sg.eh>0&&sg.ew!==u.id)splitHint="夕→"+unitShort(sg.ew);
+            if(pe&&!pm&&sg.mh>0&&sg.mw!==u.id)splitHint="朝→"+unitShort(sg.mw);
+            if(dispSeg){
+              if(pm&&pe)ab=`<span style="font-size:8px;line-height:1.15;display:inline-block">朝${sg.mh}<br>夕${sg.eh}</span>`;
+              else ab=`<span style="font-size:10.5px;font-weight:700">${pm?"朝"+sg.mh:"夕"+sg.eh}</span>`}
             else ab=(pm&&pe)?"日":(pm?"朝":"夕")}
           else ab=dispSeg&&c.k==="通し"?'<span style="font-size:8px;line-height:1.15;display:inline-block">通し<br>8h</span>':(KIND_AB[c.k]||"")}
         else ab=isMain?(KIND_AB[c.k]||"・"):"・";
@@ -1448,8 +1453,10 @@ function buildGrid(oid,mi,buf,editable){
         const showNote=(here||(isMain&&!WORKING(c.k)))&&(c.note||c.col);
         const tint=showNote?(" t"+((c.col||"y").toUpperCase())):"";
         const ntc=(showNote&&c.note)?'<span class="ntc" aria-hidden="true"></span>':'';
-        const ttl=[here?(c.k+(kindT(c.k,s,u.id,wd)?" "+kindT(c.k,s,u.id,wd):"")):(isMain&&!WORKING(c.k)?c.k:""),(showNote&&c.note)?("備考:"+c.note):null,kb[d]?("希望休:"+kb[d]):null,avm[d]?("提出:"+avm[d]):null,mw[d]?((mw[d].type==="off"?"休み条件:":"出勤条件:")+mw[d].reason):null].filter(Boolean).join(" / ");
-        cells+=`<td class="cell ${cls}${mk}${tint}${canEdit?'':' ro'}" title="${ttl}" ${canEdit?`onclick="openCell('${s.id}',${d},'${u.id}')"`:''}>${ab||'・'}${km}${ntc}</td>`}}
+        const sgT=(here&&c.k==="日勤"&&c.seg)?(()=>{const g=segOf(c);
+          return "朝"+g.mh+"h@"+unitShort(g.mw)+"／夕"+g.eh+"h@"+unitShort(g.ew)})():null;
+        const ttl=[here?(c.k+(kindT(c.k,s,u.id,wd)?" "+kindT(c.k,s,u.id,wd):"")):(isMain&&!WORKING(c.k)?c.k:""),sgT,(showNote&&c.note)?("備考:"+c.note):null,kb[d]?("希望休:"+kb[d]):null,avm[d]?("提出:"+avm[d]):null,mw[d]?((mw[d].type==="off"?"休み条件:":"出勤条件:")+mw[d].reason):null].filter(Boolean).join(" / ");
+        cells+=`<td class="cell ${cls}${mk}${tint}${canEdit?'':' ro'}" title="${ttl}" ${canEdit?`onclick="openCell('${s.id}',${d},'${u.id}')"`:''}>${ab||'・'}${km}${ntc}${splitHint?`<span class="hm">${splitHint}</span>`:''}</td>`}}
     const cap=shCapOf(s.id,mi.ym)||(s.capDef>0?s.capDef:0);
     const hasOv=Object.prototype.hasOwnProperty.call(ovmAll,s.id);
     const effPref=hasOv?ovmAll[s.id]:((s.pref)||"");
