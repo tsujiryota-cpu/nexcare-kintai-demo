@@ -1482,13 +1482,18 @@ function buildGrid(oid,mi,buf,editable){
       ?`${days}日/${hrs}h<br><span style="color:var(--sub)">計${allDays}日/${allHrs}h</span>${over?'<br><span style="color:var(--danger);font-weight:700">超過</span>':short?'<br><span style="color:var(--danger);font-weight:700">不足</span>':''}${cap?`<br><span style="color:var(--admin);font-weight:700">上限${cap}h</span>`:''}`
       :`${days}日/${hrs}h`;
     return `<tr${isMain?'':' class="subrow"'}><td class="nm">${nameCell}</td>${cells}<td class="tot">${tot}</td></tr>`};
+  const dateCells=()=>{let dc="";
+    for(let d=1;d<=mi.days;d++){const w=dow(mi,d);
+      dc+=`<td class="cov ${w===0?'sun':w===6?'sat':''}" style="font-weight:700">${d}<br><span style="font-size:8px;font-weight:400">${WD[w]}</span></td>`}
+    return dc};
   units.forEach(u=>{
     const mains=loginSort(staffL.filter(s=>s.unit===u.id));
     const subs=loginSort(getStaff().filter(s=>s.unit!==u.id&&canHelpAt(s,u.id)));
-    h+=`<tr class="covhd"><td class="nm">🏠 ${u.name}</td><td colspan="${mi.days+1}" style="text-align:left;padding:4px 8px">本務${mains.length}名＋兼務${subs.length}名。この建物の勤務はこの枠の行で入力（他の建物の勤務がある日はロック）</td></tr>`;
+    /* 建物ヘッダーにも日付を表示（下へスクロールしても何日か分かるように） */
+    h+=`<tr class="covhd"><td class="nm" title="この建物の勤務はこの枠の行で入力（他の建物の勤務がある日はロック）">🏠 ${u.name}<div class="n2" style="font-weight:400">本務${mains.length}名＋兼務${subs.length}名</div></td>${dateCells()}<td class="tot"></td></tr>`;
     mains.forEach(s=>{h+=staffRow(s,u,true)});
     subs.forEach(s=>{h+=staffRow(s,u,false)})});
-  h+=`<tr class="covhd"><td class="nm" style="font-weight:700">拠点ごとの配置人数</td><td colspan="${mi.days+1}" style="text-align:left;padding:4px 8px">勤務している人数（応援を含む）</td></tr>`;
+  h+=`<tr class="covhd"><td class="nm" style="font-weight:700">拠点ごとの配置人数<div class="n2" style="font-weight:400">勤務している人数（応援含む）</div></td>${dateCells()}<td class="tot"></td></tr>`;
   units.forEach(u=>{
     let cells="";
     for(let d=1;d<=mi.days;d++){
