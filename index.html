@@ -444,7 +444,7 @@
           マスの左上マーク: <span class="km kmk" style="position:static">希</span> 希望休あり　<span class="km kma" style="position:static">可</span> 勤務できる日（提出）　<span class="km kmm" style="position:static">条</span> 出勤・休み条件あり（受診同行・担当者会議など）<br>
           勤務の傾向（おまかせ／少なめ／日勤中心／夜勤中心／<b>日勤のみ・夜勤のみ</b>＝該当しない枠に入れない／バランス／<b>勤務なし</b>＝その月は配置しない）は<b>職員名簿で設定したものがデフォルト</b>。職員欄のプルダウンで<b>この月だけ</b>一時的に変えられます（名簿は変わりません・紫色=上書き中）。<b>応援に行けるのは名簿の「兼務できる建物」に登録した建物だけ</b>です（職員欄に「兼務可: 医大」等を表示）。他の事業所の建物を登録した職員は、その事業所の自動作成でも候補になり、表の下部「🤝 他事業所からの兼務」に読み取り専用で表示されます。<b>兼務者は先に作成・保存した事業所の勤務が優先</b>されるため、シフトは保存してから次の事業所を作成してください。<b>「今月の上限h」欄</b>に時間を入れると、その月はその時間まででしか配置されません（この月だけの設定。月計に上限を表示し、手直しで超えると「超過」と警告が出ます）。夜勤は自動作成でなるべく連続しないように割り当てます。
           頭文字の対応：永1=永山1条・医大=医大前・永6=永山6条・末6=末広6条・末Ⅰ=末広3条Ⅰ・末Ⅱ=末広3条Ⅱ・末1=末広1条　<span class="lg-z"></span> 配置0人の日<br>
-          <b>日</b>＝日勤（朝4h＋夕4h、間は休憩）　<b>通</b>＝通し（9:00〜18:00）　<b>夜</b>＝夜勤（常勤20:00〜翌5:00／非常勤22:00〜翌5:00）<br>
+          <b>日</b>＝日勤（朝4h＋夕4h、間は休憩）　<b>通</b>＝通し（9:00〜18:00）　<b>夜</b>＝夜勤（常勤20:00〜翌5:00＝実働8h／非常勤22:00〜翌5:00＝実働6h。どちらも休憩1h・マスの下に時間帯を表示）<br>
           常勤は<b>公休9日</b>。月の勤務時間は<b>基準以上（31日の月176h・30日の月168h）〜法定上限以内（31日の月177h・30日の月171h）</b>に自動で収めます。不足・超過は月計が赤くなり警告が出ます。<br>
           <b>世話人か生活支援員のどちらか</b>が毎日1名以上必要。夜間支援従事者でない職員が夜勤に入ると<b>「夜間支援従事者（自動兼務）」</b>として扱われ、様式出力・集計もその職種で計上されます。</div>
         <div class="legend" id="pubState" style="margin-bottom:8px"></div>
@@ -799,7 +799,7 @@ function unitBands(uid,wd){const o=(unitBandsAll(uid)||{})[wd]||{};
   return{m:o.m!==undefined?o.m:360,e:o.e!==undefined?o.e:960,t:o.t!==undefined?o.t:540}}
 function bandsFor(uid,wd){return(uid&&wd!==undefined&&wd!==null)?unitBands(uid,wd):{m:360,e:960,t:540}}
 /* 夜勤は雇用形態で異なる: 常勤=20:00-翌5:00(9h) / 非常勤=22:00-翌5:00(7h) */
-function kindH(k,s){if(k==="夜勤")return isFulltime(s)?9:7;return KIND_H[k]||0}
+function kindH(k,s){if(k==="夜勤")return isFulltime(s)?8:6;return KIND_H[k]||0} /* 夜勤は休憩1h差引の実働（常勤20-翌5=8h・非常勤22-翌5=6h） */
 /* 日勤の朝・夕分割: cell.seg={mh:朝h,eh:夕h,mw:朝の建物,ew:夕の建物}（なければ朝4h+夕4h・同じ建物） */
 function segOf(c){if(!c||c.k!=="日勤")return null;const sg=c.seg||{};
   return{mh:sg.mh!==undefined?sg.mh:4,eh:sg.eh!==undefined?sg.eh:4,mw:sg.mw||c.w,ew:sg.ew||c.w}}
@@ -810,7 +810,7 @@ function partH(c,s,uid){if(!c||!WORKING(c.k))return 0;const sg=segOf(c);
 function involves(c,uid){if(!c||!WORKING(c.k))return false;const sg=segOf(c);
   if(!sg)return c.w===uid;
   return (sg.mh>0&&sg.mw===uid)||(sg.eh>0&&sg.ew===uid)}
-function kindT(k,s,uid,wd){if(k==="夜勤")return isFulltime(s)?"20:00-翌5:00":"22:00-翌5:00";
+function kindT(k,s,uid,wd){if(k==="夜勤")return isFulltime(s)?"20:00-翌5:00（休憩1h・実働8h）":"22:00-翌5:00（休憩1h・実働6h）";
   if(uid&&wd!==undefined&&wd!==null){const b=unitBands(uid,wd);
     if(k==="日勤")return hm(b.m)+"-"+hm(b.m+240)+"／"+hm(b.e)+"-"+hm(b.e+240)+"（間は休憩）";
     if(k==="通し")return hm(b.t)+"-"+hm(b.t+540)}
@@ -1447,6 +1447,9 @@ function buildGrid(oid,mi,buf,editable){
               if(pm&&pe)ab=`<span style="font-size:8px;line-height:1.15;display:inline-block">朝${sg.mh}<br>夕${sg.eh}</span>`;
               else ab=`<span style="font-size:10.5px;font-weight:700">${pm?"朝"+sg.mh:"夕"+sg.eh}</span>`}
             else ab=(pm&&pe)?"日":(pm?"朝":"夕")}
+          else if(c.k==="夜勤"){
+            splitHint=isFulltime(s)?"20-翌5":"22-翌5"; /* 夜勤マスに時間帯を表記 */
+            ab=dispSeg?`<span style="font-size:8px;line-height:1.15;display:inline-block">夜<br>${kindH("夜勤",s)}h</span>`:(KIND_AB[c.k]||"")}
           else ab=dispSeg&&c.k==="通し"?'<span style="font-size:8px;line-height:1.15;display:inline-block">通し<br>8h</span>':(KIND_AB[c.k]||"")}
         else ab=isMain?(KIND_AB[c.k]||"・"):"・";
         const cls=here?(c.k==="夜勤"?"cn":"cw"):((isMain&&(c.k==="休"||c.k==="有休"))?"co":"cu");
@@ -2154,7 +2157,7 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
   // 連勤の絶対制限: 前後をつなげて5連勤を超える割り当ては行わない（埋まらない分は警告として見せる）
   const avail=(s,d,m,grp)=>free(s,d)&&avOK(s,d,grp)&&prefOK(s,grp)&&runIf(s,d)<=5
     &&(grp==="night"||m>=2||!(d>1&&B[s.id][d-2].k==="夜勤")) // 夜勤明けの翌日は日中に入れない（どうしても埋まらない時だけ許す）
-    &&(grp!=="night"||!isFulltime(s)||isWorkWish(s)||nH[s.id]<ftNightMax()*9) // 常勤の夜勤は月の上限回数まで（既定6回＝明け休6＋純粋な休み3）
+    &&(grp!=="night"||!isFulltime(s)||isWorkWish(s)||nH[s.id]<ftNightMax()*kindH("夜勤",s)) // 常勤の夜勤は月の上限回数まで（既定6回＝明け休6＋純粋な休み3）
     &&(grp!=="night"||((d<=1||B[s.id][d-2].k!=="夜勤")&&(d>=mi.days||B[s.id][d].k!=="夜勤"))) // 夜勤は連日続けない（絶対制約）
     &&(!isFulltime(s)||isWorkWish(s)||hours[s.id]+(grp==="night"?kindH("夜勤",s):8)<=maxH) // 常勤は法定上限(177h/171h)をどのモードでも超えない
     &&(manCap(s)?hours[s.id]+(grp==="night"?kindH("夜勤",s):8)<=manCap(s) // 上限入力あり=絶対に超えない
