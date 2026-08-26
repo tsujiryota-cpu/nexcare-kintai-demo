@@ -196,8 +196,8 @@
   .sgrid td.cell.tB{background:var(--tint-b)!important}
   .sgrid td.cell.tG{background:var(--tint-g)!important}
   .sgrid td.cell .ntc{position:absolute;top:0;right:0;width:0;height:0;border-top:8px solid var(--help);border-left:8px solid transparent}
-  .sgrid td.cell .lkx{font-size:8.5px;color:var(--sub);font-weight:700;letter-spacing:-.5px}
-  .sgrid td.cell .lkk{font-size:10px;font-weight:700;letter-spacing:-1px;opacity:.85;white-space:nowrap}
+  .sgrid td.cell .lkx{font-size:10.5px;color:var(--sub);font-weight:700;letter-spacing:-.5px;white-space:nowrap} /* 上段=行き先 */
+  .sgrid td.cell .lkk{font-size:8px;font-weight:700;letter-spacing:-.5px;white-space:nowrap} /* 下段=そこでの勤務 */
   .sgrid td.cell .lkk.lkd{color:var(--work)}
   .sgrid td.cell .lkk.lkn{color:var(--admin)}
   .sgrid tr.subrow td{opacity:.96}
@@ -306,7 +306,8 @@
     .sgrid table{width:100%}
     .sgrid td.cell{height:42px;font-size:13px}
     .sgrid td.cell .hm{font-size:9.5px}
-    .sgrid td.cell .lkk{font-size:12px;letter-spacing:-.5px}
+    .sgrid td.cell .lkx{font-size:12.5px}
+    .sgrid td.cell .lkk{font-size:9.5px}
     .sgrid .nm{min-width:140px;max-width:176px}
     .sgrid table{font-size:12.5px}
     .sgrid thead th{font-size:11px}
@@ -450,7 +451,7 @@
         <div id="reqPanel"></div>
         <div id="shWarn"></div>
         <div class="sgrid" id="shiftGrid"></div>
-        <div class="legend"><b>表は「建物ごとの枠」に本務行と兼務行が並びます。</b>その建物の勤務はその枠の行で入力してください（マスをタップ）。<b>別の建物で勤務が入っている日はグレーのロック表示</b>になるので、同じ日の重複は起きません（タップ不可）。ロックのマスには<b>「↗区分」＋行き先の頭文字</b>を出すので、その日どこで何の勤務をするか（例: ↗夜／医大＝医大前で夜勤）が分かります。緑＝日勤系・紫＝夜勤です。<br>
+        <div class="legend"><b>表は「建物ごとの枠」に本務行と兼務行が並びます。</b>その建物の勤務はその枠の行で入力してください（マスをタップ）。<b>別の建物で勤務が入っている日はグレーのロック表示</b>になるので、同じ日の重複は起きません（タップ不可）。ロックのマスは<b>上段に行き先の頭文字・下段に「↗区分」</b>を出すので、その日どこで何の勤務をするかが分かります（例: 上が「医大」・下が「↗夜」＝医大前で夜勤）。下段は<b>緑＝日勤系・紫＝夜勤</b>です。<br>
           <b>日勤は朝＋夕の2部制</b>：マスの編集で朝・夕それぞれの時間（例: 2時間＋2時間）と場所（朝と夕で別の建物も可）を変えられます。表示は上のプルダウンで「区分」⇄「朝・夕の内訳」を切替。朝・夕の開始時刻は<b>「⏰ 勤務時間」</b>で建物×曜日ごとに設定できます。<br>
           同じ内容を続けて入れる時は、マスの編集画面の<b>「📋 連続入力」</b>→他の日をタップで貼り付け→「終了」。<br>
           マスの編集で<b>備考</b>を書くと右上に▲マークが付き、マスが色づきます（色は選択可）。職員側の予定表示にも📝で表示されます。<br>
@@ -1521,7 +1522,7 @@ function buildGrid(oid,mi,buf,editable){
           :kindT(c.k,s,c.w,wd,c.half);
         const lkTtl="この日は"+destFull+"で"+(sgx?"日勤":planLabel(c))+(lkT?"（"+lkT+"）":"")
           +"。ここから変えるには、先にそちらの行で休にしてください";
-        cells+=`<td class="cell lk" title="${hesc(lkTtl)}">${km}<span class="lkk ${c.k==="夜勤"?"lkn":"lkd"}">↗${awayAB(c)}</span><span class="hm lkx">${dest}</span></td>`}
+        cells+=`<td class="cell lk" title="${hesc(lkTtl)}">${km}<span class="lkx">${dest}</span><span class="hm lkk ${c.k==="夜勤"?"lkn":"lkd"}">↗${awayAB(c)}</span></td>`}
       else{
         const dispSeg=(typeof document!=="undefined"&&document.getElementById("shDisp")&&document.getElementById("shDisp").value==="seg");
         let ab,splitHint="";
