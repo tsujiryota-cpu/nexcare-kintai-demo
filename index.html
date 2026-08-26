@@ -197,6 +197,9 @@
   .sgrid td.cell.tG{background:var(--tint-g)!important}
   .sgrid td.cell .ntc{position:absolute;top:0;right:0;width:0;height:0;border-top:8px solid var(--help);border-left:8px solid transparent}
   .sgrid td.cell .lkx{font-size:8.5px;color:var(--sub);font-weight:700;letter-spacing:-.5px}
+  .sgrid td.cell .lkk{font-size:10px;font-weight:700;letter-spacing:-1px;opacity:.85;white-space:nowrap}
+  .sgrid td.cell .lkk.lkd{color:var(--work)}
+  .sgrid td.cell .lkk.lkn{color:var(--admin)}
   .sgrid tr.subrow td{opacity:.96}
   .sgrid tr.subrow td.nm{padding-top:3px;padding-bottom:3px}
   .paintbar{position:fixed;bottom:78px;left:0;right:0;margin:0 auto;width:fit-content;max-width:92%;z-index:45;
@@ -303,6 +306,7 @@
     .sgrid table{width:100%}
     .sgrid td.cell{height:42px;font-size:13px}
     .sgrid td.cell .hm{font-size:9.5px}
+    .sgrid td.cell .lkk{font-size:12px;letter-spacing:-.5px}
     .sgrid .nm{min-width:140px;max-width:176px}
     .sgrid table{font-size:12.5px}
     .sgrid thead th{font-size:11px}
@@ -446,7 +450,7 @@
         <div id="reqPanel"></div>
         <div id="shWarn"></div>
         <div class="sgrid" id="shiftGrid"></div>
-        <div class="legend"><b>表は「建物ごとの枠」に本務行と兼務行が並びます。</b>その建物の勤務はその枠の行で入力してください（マスをタップ）。<b>別の建物で勤務が入っている日はグレーのロック表示</b>（行き先の頭文字つき・タップ不可）になるので、同じ日の重複は起きません。<br>
+        <div class="legend"><b>表は「建物ごとの枠」に本務行と兼務行が並びます。</b>その建物の勤務はその枠の行で入力してください（マスをタップ）。<b>別の建物で勤務が入っている日はグレーのロック表示</b>になるので、同じ日の重複は起きません（タップ不可）。ロックのマスには<b>「↗区分」＋行き先の頭文字</b>を出すので、その日どこで何の勤務をするか（例: ↗夜／医大＝医大前で夜勤）が分かります。緑＝日勤系・紫＝夜勤です。<br>
           <b>日勤は朝＋夕の2部制</b>：マスの編集で朝・夕それぞれの時間（例: 2時間＋2時間）と場所（朝と夕で別の建物も可）を変えられます。表示は上のプルダウンで「区分」⇄「朝・夕の内訳」を切替。朝・夕の開始時刻は<b>「⏰ 勤務時間」</b>で建物×曜日ごとに設定できます。<br>
           同じ内容を続けて入れる時は、マスの編集画面の<b>「📋 連続入力」</b>→他の日をタップで貼り付け→「終了」。<br>
           マスの編集で<b>備考</b>を書くと右上に▲マークが付き、マスが色づきます（色は選択可）。職員側の予定表示にも📝で表示されます。<br>
@@ -813,6 +817,10 @@ const KIND_H={"未定":0,"日勤":8,"通し":8,"夜勤":7,"半日":4,"休":0,"�
 const KIND_AB={"未定":"","日勤":"日","通し":"通","夜勤":"夜","半日":"半","休":"休","有休":"有"};
 /* ヒント行が置けない画面用の略字。半日は 半前／半後 で午前・午後を区別する */
 function kindAB(c){if(!c)return "";return c.k==="半日"?("半"+(halfOf(c)==="pm"?"後":"前")):(KIND_AB[c.k]||"")}
+/* 他の建物での勤務を表す略字。日勤の朝夕分割は、実際に入る側（朝だけ=朝／夕だけ=夕／両方=日）で出す */
+function awayAB(c){const sg=segOf(c);
+  if(sg){const pm=sg.mh>0,pe=sg.eh>0;return (pm&&pe)?"日":(pm?"朝":"夕")}
+  return kindAB(c)}
 const KIND_TIME={"日勤":"6:00-10:00／16:00-20:00（間は休憩）","通し":"9:00-18:00","半日":"4時間"};
 /* 建物×曜日ごとの勤務時間帯（管理者権限が設定。開始時刻のみ設定し、長さは朝4h・夕4h・通し9時間枠で固定）
    保存キー nl_unithours_{unitId} = {曜日0(日)〜6(土): {m:朝開始(分), e:夕開始(分), t:通し開始(分)}} */
@@ -1502,9 +1510,18 @@ function buildGrid(oid,mi,buf,editable){
       const km=isMain?(mw[d]?`<span class="km kmm">条</span>`:kb[d]?`<span class="km kmk">希</span>`:avm[d]?`<span class="km kma">可</span>`:''):'';
       const mk=isMain?(mw[d]?" mw":(kb[d]?" kb":(avm[d]?" av":""))):"";
       if(elsewhere){
+        /* 他の建物で勤務している日。行き先だけでなく「そこで何をするか」（日/通/夜/半前/半後）も出す */
         const sgx=segOf(c);
         const dest=sgx?[...new Set([sgx.mh>0?sgx.mw:null,sgx.eh>0?sgx.ew:null].filter(Boolean))].map(unitShort).join("/"):unitShort(c.w);
-        cells+=`<td class="cell lk" title="この日は${unitName(c.w)}などで${planLabel(c)}。ここから変えるには、先にそちらの行で休にしてください">${km}<span class="lkx">${dest}</span></td>`}
+        /* 行き先は正式名で書く（朝夕で建物が違う日は両方） */
+        const destFull=sgx?[...new Set([sgx.mh>0?sgx.mw:null,sgx.eh>0?sgx.ew:null].filter(Boolean))].map(unitName).join("・"):unitName(c.w);
+        /* 朝だけ・夕だけの日は、その分の時間だけを出す（両方の時間帯を書くと実態とずれる） */
+        const lkT=sgx
+          ?[sgx.mh>0?("朝"+sgx.mh+"h@"+unitShort(sgx.mw)):null,sgx.eh>0?("夕"+sgx.eh+"h@"+unitShort(sgx.ew)):null].filter(Boolean).join("／")
+          :kindT(c.k,s,c.w,wd,c.half);
+        const lkTtl="この日は"+destFull+"で"+(sgx?"日勤":planLabel(c))+(lkT?"（"+lkT+"）":"")
+          +"。ここから変えるには、先にそちらの行で休にしてください";
+        cells+=`<td class="cell lk" title="${hesc(lkTtl)}">${km}<span class="lkk ${c.k==="夜勤"?"lkn":"lkd"}">↗${awayAB(c)}</span><span class="hm lkx">${dest}</span></td>`}
       else{
         const dispSeg=(typeof document!=="undefined"&&document.getElementById("shDisp")&&document.getElementById("shDisp").value==="seg");
         let ab,splitHint="";
