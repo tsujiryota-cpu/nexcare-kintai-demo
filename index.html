@@ -36,12 +36,15 @@
   .wrap{max-width:460px;width:100%;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
   .demo-tag{position:fixed;top:0;left:0;right:0;text-align:center;font-size:11.5px;letter-spacing:.04em;
     background:var(--accent);color:#fff;padding:4px;z-index:50;font-weight:600}
-  @media (prefers-color-scheme:dark){.demo-tag{color:#08201D}}
+  /* 濃い地色の上の文字は、OSのダーク設定ではなく「実際に表示中のテーマ」で決める（☾で切り替えても崩れないように） */
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .demo-tag{color:#08201D}}
+  :root[data-theme="dark"] .demo-tag{color:#08201D}
   header{padding:34px 20px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
   .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;min-width:0}
   .brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .logo{width:30px;height:30px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:16px;flex-shrink:0}
-  @media (prefers-color-scheme:dark){.logo{color:#08201D}}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .logo{color:#08201D}}
+  :root[data-theme="dark"] .logo{color:#08201D}
   .icon-btn{background:none;border:1px solid var(--line2);color:var(--sub);width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:15px;flex-shrink:0}
   .coSel{width:auto;border:none;background:transparent;color:var(--ink);font-weight:700;font-size:17px;padding:0 2px;cursor:pointer;appearance:auto;border-radius:6px}
   main{flex:1;padding:6px 20px 96px;min-width:0}
@@ -55,7 +58,8 @@
   .tab{white-space:nowrap;border:1px solid var(--line2);background:var(--card);color:var(--sub);
     padding:8px 15px;border-radius:999px;font-size:13.5px;font-weight:600;cursor:pointer}
   .tab.on{background:var(--accent);border-color:var(--accent);color:#fff}
-  @media (prefers-color-scheme:dark){.tab.on{color:#08201D}}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tab.on{color:#08201D}}
+  :root[data-theme="dark"] .tab.on{color:#08201D}
   .staff-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .staff{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);
     border-radius:var(--r);padding:13px 12px;cursor:pointer;box-shadow:var(--shadow);text-align:left}
@@ -99,7 +103,8 @@
   .pbtn:disabled{opacity:.32;cursor:not-allowed;filter:saturate(.5)}
   .pbtn.p-in{background:var(--work)} .pbtn.p-out{background:var(--off)}
   .pbtn.p-bs{background:var(--break)} .pbtn.p-be{background:var(--accent)}
-  @media (prefers-color-scheme:dark){.pbtn{color:#0c1710}}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pbtn{color:#0c1710}}
+  :root[data-theme="dark"] .pbtn{color:#0c1710}
 
   .log{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
   .log-row{display:flex;align-items:center;gap:12px;padding:13px 15px;border-top:1px solid var(--line)}
@@ -121,10 +126,12 @@
     border-radius:11px;padding:11px 12px;font-size:15px}
   textarea{resize:vertical;min-height:60px}
   .cta{width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer}
-  @media (prefers-color-scheme:dark){.cta{color:#08201D}}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cta{color:#08201D}}
+  :root[data-theme="dark"] .cta{color:#08201D}
   .cta:active{transform:scale(.99)}
   .cta.adm{background:var(--admin)}
-  @media (prefers-color-scheme:dark){.cta.adm{color:#140d20}}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cta.adm{color:#140d20}}
+  :root[data-theme="dark"] .cta.adm{color:#140d20}
 
   .req-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
     border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow);margin-top:10px}
@@ -167,7 +174,8 @@
   .toolrow button{flex:1;width:auto;background:var(--card);border:1px solid var(--line2);color:var(--ink);
     border-radius:11px;padding:10px 8px;font-size:12.5px;font-weight:700;cursor:pointer}
   .toolrow button.magic{background:var(--admin);border-color:var(--admin);color:#fff}
-  @media (prefers-color-scheme:dark){.toolrow button.magic{color:#140d20}}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .toolrow button.magic{color:#140d20}}
+  :root[data-theme="dark"] .toolrow button.magic{color:#140d20}
   .sgrid{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:var(--shadow);margin-bottom:12px}
   .sgrid table{border-collapse:separate;border-spacing:0;font-size:11.5px;min-width:max-content}
   .sgrid th,.sgrid td{padding:0;text-align:center;border-bottom:1px solid var(--line);border-right:1px solid var(--line);background:var(--card)}
@@ -240,7 +248,8 @@
   .chipgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
   .chip{background:var(--card);border:1px solid var(--line2);color:var(--ink);border-radius:10px;padding:11px 0;font-size:13.5px;font-weight:700;cursor:pointer;width:auto}
   .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
-  @media (prefers-color-scheme:dark){.chip.on{color:#08201D}}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.on{color:#08201D}}
+  :root[data-theme="dark"] .chip.on{color:#08201D}
 
   .agg{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
   .agg .oh{font-weight:700;font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
@@ -804,12 +813,19 @@ function kindH(k,s){if(k==="夜勤")return isFulltime(s)?8:6;return KIND_H[k]||0
 function segOf(c){if(!c||c.k!=="日勤")return null;const sg=c.seg||{};
   return{mh:sg.mh!==undefined?sg.mh:4,eh:sg.eh!==undefined?sg.eh:4,mw:sg.mw||c.w,ew:sg.ew||c.w}}
 function cellH(c,s){if(!c||!WORKING(c.k))return 0;const sg=segOf(c);return sg?(sg.mh+sg.eh):kindH(c.k,s)}
+/* マスの複製: 区分・勤務先だけでなく朝夕分割(seg)・備考・色も引き継ぐ（作業バッファへの読み込みで消えないように） */
+function copyCell(c,s){if(!c)return{k:"未定",w:s?homeUnitOf(s):""};
+  const o={k:c.k,w:c.w};if(c.seg)o.seg=Object.assign({},c.seg);if(c.note)o.note=c.note;if(c.col)o.col=c.col;return o}
 function partH(c,s,uid){if(!c||!WORKING(c.k))return 0;const sg=segOf(c);
   if(!sg)return c.w===uid?kindH(c.k,s):0;
   return (sg.mw===uid?sg.mh:0)+(sg.ew===uid?sg.eh:0)}
 function involves(c,uid){if(!c||!WORKING(c.k))return false;const sg=segOf(c);
   if(!sg)return c.w===uid;
   return (sg.mh>0&&sg.mw===uid)||(sg.eh>0&&sg.ew===uid)}
+/* そのマスで実際に勤務する建物（朝夕を別の建物にした日は2つ返る） */
+function cellUnits(c){if(!c||!WORKING(c.k))return[];const sg=segOf(c);
+  if(!sg)return c.w?[c.w]:[];
+  return [...new Set([sg.mh>0?sg.mw:null,sg.eh>0?sg.ew:null].filter(Boolean))]}
 function kindT(k,s,uid,wd){if(k==="夜勤")return isFulltime(s)?"20:00-翌5:00（休憩1h・実働8h）":"22:00-翌5:00（休憩1h・実働6h）";
   if(uid&&wd!==undefined&&wd!==null){const b=unitBands(uid,wd);
     if(k==="日勤")return hm(b.m)+"-"+hm(b.m+240)+"／"+hm(b.e)+"-"+hm(b.e+240)+"（間は休憩）";
@@ -820,6 +836,9 @@ const WORKING=k=>KIND_H[k]>0;
 const TYPES={"出勤":"k-in","退勤":"k-out","休憩開始":"k-bs","休憩終了":"k-be"};
 
 /* ================= storage ================= */
+/* 画面に出す前のエスケープ。氏名・備考・理由などの手入力に「"」や「<」が入ると
+   セルの title 属性や見出しが壊れるため、HTMLに埋め込むものは必ずこれを通す */
+function hesc(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 const store={
   get(k,d){try{const v=localStorage.getItem("nl_"+k);return v===null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem("nl_"+k,JSON.stringify(v))}catch(e){}}
@@ -835,6 +854,13 @@ function homeUnitOf(s){const u=UNITS.find(x=>x.id===s.unit);
 function unitShort(id){const u=UNITS.find(x=>x.id===id);return u?(u.sn||u.name.slice(0,2)):""}
 function unitOffice(id){const u=UNITS.find(x=>x.id===id);return u?u.office:""}
 function officeUnits(oid){return UNITS.filter(u=>u.office===oid&&!u.closed)} /* 閉所建物は全選択肢から除外 */
+/* 世話人か生活支援員が、その事業所の建物で何人勤務しているか。
+   グリッドの人数行・警告・自動作成で判定がずれないよう、必ずこの関数を通す（応援・兼務・朝夕分割も対象） */
+function isCare(s){return hasRole(s,"世話人")||hasRole(s,"生活支援員")}
+function careCountAt(oid,d,arrOf){const us=officeUnits(oid);
+  return getStaff().filter(s=>{if(!isCare(s))return false;
+    const a=arrOf(s);const c=a&&a[d-1];
+    return !!c&&WORKING(c.k)&&us.some(u=>involves(c,u.id))}).length}
 function getStaff(){let s=store.get("staff",null);
   if(!s||!Array.isArray(s)||!s.length||!s[0].unit||!s.some(x=>x.id==="n36")||((s.find(x=>x.id==="n27")||{}).roles||[]).indexOf("管理者")>=0||!s[0].roles||s[0].help===undefined||(((s.find(x=>x.id==="n29")||{}).help)||[]).indexOf("u_naga1")<0||(s.find(x=>x.id==="n15")||{}).unit==="u_kamui3"||(((s.find(x=>x.id==="n12")||{}).help)||[]).indexOf("u_sue3a")<0||(((s.find(x=>x.id==="n01")||{}).roles)||[]).indexOf("管理者")>=0){
     s=STAFF_SEED.map(x=>Object.assign({},x));store.set("staff",s)}return s}
@@ -864,9 +890,10 @@ function setShCap(sid,ym,val){const o=getShCapAll(ym);const n=parseFloat(val);
   if(n>0)o[sid]=n;else delete o[sid];store.set(shCapKey(ym),o);
   const s=getStaff().find(x=>x.id===sid);const m=parseInt(ym.slice(5),10);
   toast((s?s.name+"：":"")+(n>0?m+"月は上限"+n+"時間までに設定しました（次の自動作成から反映）":m+"月の上限時間を解除しました"))}
+/* 常勤の月間基準時間＝公休9日ぶんを引いた実働（31日月=176h・30日月=168h）。これ以上働くのが目安 */
 function minFulltimeH(days){return (days-9)*8}
-/* 常勤の月間上限＝法定労働時間（週40h×暦日÷7を切り捨て）: 31日月=177h・30日月=171h */
-function maxFulltimeH(days){return Math.floor(days*40/7)} /* 常勤=公休9日: 31日月=176h, 30日月=168h */
+/* 常勤の月間上限＝法定労働時間（週40h×暦日÷7を切り捨て）: 31日月=177h・30日月=171h。これを超えてはいけない */
+function maxFulltimeH(days){return Math.floor(days*40/7)}
 function isFulltime(s){return (s.employ||"").indexOf("常勤")===0}
 function officeHasNight(oid){return getStaff().some(s=>s.office===oid&&hasRole(s,"夜間支援従事者"))}
 function saveStaffList(a){store.set("staff",a)}
@@ -911,8 +938,8 @@ function renderStaff(){const el=document.getElementById("staffGrid");
   if(!curOffice){el.innerHTML=`<div class="empty" style="grid-column:1/3;border:1px solid var(--line);border-radius:14px">「${companyName(curCompany)}」の事業所・職員は、このデモではまだ登録されていません。<br>本番では会社ごとに事業所と職員を登録できます。<br><span class="muted" style="font-size:12px">（ニコライフを選ぶとサンプルを試せます）</span></div>`;return}
   const list=loginSort(officeStaff(curOffice));
   if(!list.length){el.innerHTML='<div class="empty" style="grid-column:1/3;border:1px solid var(--line);border-radius:14px">この事業所にはまだ職員がいません。</div>';return}
-  el.innerHTML=list.map(s=>`<button class="staff" onclick="pickStaff('${s.id}')"><span class="ava ${s.admin?'adm':''}">${initial(s.name)}</span>
-    <span style="min-width:0"><span class="nm">${s.name}</span><span class="rl">${unitName(s.unit)}・${roleStr(s)}${s.admin?'・管理者権限':''}</span></span></button>`).join("")}
+  el.innerHTML=list.map(s=>`<button class="staff" onclick="pickStaff('${s.id}')"><span class="ava ${s.admin?'adm':''}">${hesc(initial(s.name))}</span>
+    <span style="min-width:0"><span class="nm">${hesc(s.name)}</span><span class="rl">${unitName(s.unit)}・${hesc(roleStr(s))}${s.admin?'・管理者権限':''}</span></span></button>`).join("")}
 function pickStaff(id){const s=getStaff().find(x=>x.id===id);if(!s)return;
   me=Object.assign({},s);pin="";updatePin();
   document.getElementById("pinName").textContent=s.name;show("pin")}
@@ -951,9 +978,21 @@ function fmtToday(){const d=new Date();const w=["日","月","火","水","木","�
 setInterval(tick,1000);
 
 /* ================= punch ================= */
-function todayKey(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
+function dkeyOf(d){return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
+function todayKey(){return dkeyOf(new Date())}
+function ykey(){const t=new Date();return dkeyOf(new Date(t.getFullYear(),t.getMonth(),t.getDate()-1))}
+/* 打刻を書き込む「勤務日」。夜勤で日をまたいで勤務中（前日に出勤があり退勤がない）なら前日の勤務日に記録する。
+   これをしないと 20:00出勤→翌5:00退勤 が別々の日に分かれ、実働0h・退勤なしの誤警告になる */
+function workDateKey(sid){const id=sid||me.id;const tk=todayKey();
+  if((store.get("punch_"+id+"_"+tk,[])||[]).length)return tk;
+  const yk=ykey();const b=store.get("punch_"+id+"_"+yk,[])||[];
+  if(b.some(x=>x.type==="出勤")&&!b.some(x=>x.type==="退勤"))return yk;
+  return tk}
+/* 夜勤で勤務中の分は「退勤打刻がない日」に数えない（翌日の昼までは勤務が続いているとみなす） */
+function nightOpen(a,dayBack){return dayBack===1&&new Date().getHours()<12
+  &&a.some(x=>x.type==="出勤")&&!a.some(x=>x.type==="退勤")}
 /* 修正・削除の対象コンテキスト（本人=自分の当日／管理者=選んだ職員・日付） */
-let pSid=null,pDate=null,pRefresh=null;
+let pSid=null,pDate=null,pRefresh=null,pOwnDay=true; /* pOwnDay=本人が自分の勤務日を見ている */
 function punchKey(){return "punch_"+(pSid||me.id)+"_"+(pDate||todayKey())}
 function nowHM(){const d=new Date();const p=n=>String(n).padStart(2,"0");return p(d.getHours())+":"+p(d.getMinutes())}
 function getPunches(){return store.get(punchKey(),[])}
@@ -975,9 +1014,10 @@ function punchPlace(){const s=document.getElementById("punchPlace");return s?s.v
 function resetPunchPlace(){const s=document.getElementById("punchPlace");if(s)s.value=""}
 function forcePunch(){
   if(!punchPlace()){punchErr("⚠ 出勤場所（建物）を選んでください。",false);return}
+  pDate=todayKey(); /* 新しい勤務の開始は必ず当日から */
   document.getElementById("punchErr").classList.add("hide");
   const a=getPunches();a.push({type:"出勤",time:nowHM(),edited:false,comment:"",off:true,place:punchPlace()});setPunches(a);
-  resetPunchPlace();renderPunch();toast("シフト外出勤として記録しました。管理者にも連絡してください")}
+  resetPunchPlace();renderPunch(pDate);toast("シフト外出勤として記録しました。管理者にも連絡してください")}
 /* 予定との食い違いチェック（場所・開始時刻±60分。日勤は朝6時/夕16時の両方を許容） */
 function kindStarts(k,s,uid,wd){const b=bandsFor(uid,wd);
   if(k==="日勤")return[b.m,b.e];
@@ -994,9 +1034,10 @@ function punchMismatch(p,place,nowMin){const rs=[];
   return rs}
 let pendingPlace=null;
 function doRecordIn(place){
+  pDate=todayKey(); /* 新しい勤務の開始は必ず当日から */
   const rec={type:"出勤",time:nowHM(),edited:false,comment:"",place:place};
   const a=getPunches();a.push(rec);setPunches(a);
-  resetPunchPlace();renderPunch();toast("出勤 を記録しました")}
+  resetPunchPlace();renderPunch(pDate);toast("出勤 を記録しました")}
 function confirmIn(){document.getElementById("cnfOv").classList.add("hide");
   if(pendingPlace){doRecordIn(pendingPlace);pendingPlace=null}}
 function closeCnf(){document.getElementById("cnfOv").classList.add("hide");pendingPlace=null}
@@ -1024,7 +1065,7 @@ function punch(type){
   document.getElementById("punchErr").classList.add("hide");
   const rec={type,time:nowHM(),edited:false,comment:""};
   const a=getPunches();a.push(rec);setPunches(a);
-  renderPunch();toast(type+" を記録しました")}
+  renderPunch(pDate);toast(type+" を記録しました")}
 function renderPubNotice(){const el=document.getElementById("pubNotice");if(!el)return;
   const n=store.get("notice_"+me.office,null);
   const seen=store.get("nseen_"+me.id,"");
@@ -1033,9 +1074,8 @@ function renderPubNotice(){const el=document.getElementById("pubNotice");if(!el)
     html+='<div class="perr" style="border-color:var(--work);background:var(--work-bg);color:var(--work);cursor:pointer;margin-bottom:10px" onclick="seenNotice()">📢 '+n.m+'月のシフトが公開されました。タップして確認 →</div>';
   const t=new Date();const misses=[];
   for(let i=1;i<=7;i++){const d=new Date(t.getFullYear(),t.getMonth(),t.getDate()-i);
-    const key="punch_"+me.id+"_"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
-    const a=store.get(key,[]);
-    if(a.some(x=>x.type==="出勤")&&!a.some(x=>x.type==="退勤"))misses.push((d.getMonth()+1)+"/"+d.getDate())}
+    const a=store.get("punch_"+me.id+"_"+dkeyOf(d),[]);
+    if(a.some(x=>x.type==="出勤")&&!a.some(x=>x.type==="退勤")&&!nightOpen(a,i))misses.push((d.getMonth()+1)+"/"+d.getDate())}
   if(misses.length)
     html+='<div class="perr" style="margin-bottom:10px">⚠ '+misses.join("、")+' の退勤打刻がありません。管理者権限の方に修正を依頼してください。</div>';
   el.innerHTML=html}
@@ -1044,10 +1084,14 @@ function seenNotice(){const n=store.get("notice_"+me.office,null);
   const d=new Date();const cur=d.getFullYear()*12+(d.getMonth()+1);
   const tgt=n&&n.ym?(+n.ym.slice(0,4))*12+(+n.ym.slice(5,7)):cur;
   nav("sched");schOff=tgt-cur;schMode("me")} /* navがschOffを0に戻すため、後から設定する */
-function renderPunch(){
+function renderPunch(keep){
   renderPubNotice();
-  pSid=me.id;pDate=todayKey();pRefresh=renderPunch; /* 本人ビュー=自分の当日 */
-  document.getElementById("today").textContent=fmtToday();tick();
+  pSid=me.id;pDate=keep||workDateKey();pOwnDay=true; /* 本人ビュー=自分の勤務日（夜勤で日をまたいでいる間は前日） */
+  pRefresh=function(){renderPunch(pDate)};
+  const wdDiff=pDate!==todayKey();
+  document.getElementById("today").innerHTML=fmtToday()
+    +(wdDiff?'<br><span style="font-size:11.5px;color:var(--admin);font-weight:700">🌙 表示中の勤務日：'+pDate.split("-").slice(1).join("/")+'（夜勤の続き）</span>':"");
+  tick();
   const p=todayPlan();
   document.getElementById("planTxt").innerHTML=!p?"今日の予定：シフト未作成"
     :WORKING(p.k)?`今日の予定：<b>${p.k}</b>${kindT(p.k,me,p.w,new Date().getDay())?" "+kindT(p.k,me,p.w,new Date().getDay()):""}<br>勤務先：${unitName(p.w)}${unitOffice(p.w)!==me.office?"・応援":""}`
@@ -1064,14 +1108,14 @@ function renderPunch(){
   log.innerHTML=a.map((p,i)=>`<div class="log-row">
     <span class="tp"><span class="k ${TYPES[p.type]}"></span>${p.type}${p.off?' <span class="badge-e" style="color:var(--danger);background:var(--danger-bg)">シフト外</span>':''}${p.edited?' <span class="badge-e">修正済</span>':''}
     ${p.place?`<span class="cm">📍 ${unitName(p.place)}${unitOffice(p.place)!==me.office?'（応援）':''}</span>`:''}
-    ${p.comment?`<span class="cm">📝 ${p.comment}</span>`:''}
-    ${p.editedBy?`<span class="cm">✎ 管理者権限の ${p.editedBy} が修正</span>`:''}
-    ${p.addedBy?`<span class="cm">＋ 管理者権限の ${p.addedBy} が追加</span>`:''}</span>
+    ${p.comment?`<span class="cm">📝 ${hesc(p.comment)}</span>`:''}
+    ${p.editedBy?`<span class="cm">✎ 管理者権限の ${hesc(p.editedBy)} が修正</span>`:''}
+    ${p.addedBy?`<span class="cm">＋ 管理者権限の ${hesc(p.addedBy)} が追加</span>`:''}</span>
     <span class="tm">${p.time}</span>
     <button class="edit" onclick="openEdit(${i})" aria-label="修正">✎</button></div>`).join("")
   +dl.map(p=>`<div class="log-row" style="opacity:.6">
     <span class="tp"><span class="k ${TYPES[p.type]||''}"></span><s>${p.type}</s> <span class="badge-e" style="color:var(--danger);background:var(--danger-bg)">削除済み</span>
-    <span class="cm">🗑 ${p.reason}（${p.delAt} に削除）</span></span>
+    <span class="cm">🗑 ${hesc(p.reason)}（${p.delAt} に削除）</span></span>
     <span class="tm"><s>${p.time}</s></span>
     <span style="width:32px;flex-shrink:0"></span></div>`).join("");
   renderMyBook()}
@@ -1212,8 +1256,8 @@ function renderOTMine(){const el=document.getElementById("otMine");if(!el)return
   const a=getOT(me.id).slice().sort((x,y)=>x.date<y.date?1:-1);
   el.innerHTML=a.length?a.map(x=>`<div class="log-row">
     <span class="tp">${jdate(x.date)}　<b>${x.h}h</b> ${otBadge(x.status)}
-      <span class="cm">📝 ${x.reason}</span>
-      ${x.by?`<span class="cm">${x.status==="approved"?"承認":"却下"}：${x.by}（${x.decidedAt||""}）${x.note?"／理由: "+x.note:""}</span>`:""}</span>
+      <span class="cm">📝 ${hesc(x.reason)}</span>
+      ${x.by?`<span class="cm">${x.status==="approved"?"承認":"却下"}：${hesc(x.by)}（${x.decidedAt||""}）${x.note?"／理由: "+hesc(x.note):""}</span>`:""}</span>
     ${x.status==="pending"?`<button class="edit" onclick="cancelOT('${x.id}')" aria-label="取り下げ">🗑</button>`:'<span style="width:32px;flex-shrink:0"></span>'}</div>`).join("")
   :'<div class="empty" style="border:1px solid var(--line);border-radius:12px">申請はまだありません。</div>'}
 function renderOTAdm(){const el=document.getElementById("otAdmList");if(!el)return;
@@ -1225,18 +1269,18 @@ function renderOTAdm(){const el=document.getElementById("otAdmList");if(!el)retu
    `<h2 style="margin:0 0 10px">承認待ち（${pend.length}件）</h2>`+
    (pend.length?pend.map(r=>`<div class="adm-row" style="align-items:flex-start">
       <span style="min-width:0;flex:1">
-        <div class="nm">${r.s.name}<span class="rl" style="display:inline">（${unitName(r.s.unit)}）</span></div>
+        <div class="nm">${hesc(r.s.name)}<span class="rl" style="display:inline">（${unitName(r.s.unit)}）</span></div>
         <div class="rl">${jdate(r.x.date)}・<b>${r.x.h}h</b>　申請日時: ${r.x.at||""}</div>
-        <div class="rl" style="white-space:normal">📝 ${r.x.reason}</div></span>
+        <div class="rl" style="white-space:normal">📝 ${hesc(r.x.reason)}</div></span>
       <button class="go" style="background:var(--work);border-color:var(--work);color:#fff;flex-shrink:0" onclick="decideOT('${r.s.id}','${r.x.id}','approved')">承認</button>
       <button class="go" style="background:var(--danger);border-color:var(--danger);color:#fff;flex-shrink:0" onclick="decideOT('${r.s.id}','${r.x.id}','rejected')">却下</button></div>`).join("")
     :'<div class="empty" style="border:1px solid var(--line);border-radius:12px;margin-bottom:14px">承認待ちの申請はありません。</div>')+
    `<h2 style="margin:18px 0 10px">対応済み</h2>`+
    (done.length?done.map(r=>`<div class="adm-row" style="opacity:.78;align-items:flex-start">
       <span style="min-width:0;flex:1">
-        <div class="nm">${r.s.name} ${otBadge(r.x.status)}</div>
-        <div class="rl">${jdate(r.x.date)}・${r.x.h}h／${r.x.status==="approved"?"承認":"却下"}: ${r.x.by||""}（${r.x.decidedAt||""}）${r.x.note?"／理由: "+r.x.note:""}</div>
-        <div class="rl" style="white-space:normal">📝 ${r.x.reason}</div></span></div>`).join("")
+        <div class="nm">${hesc(r.s.name)} ${otBadge(r.x.status)}</div>
+        <div class="rl">${jdate(r.x.date)}・${r.x.h}h／${r.x.status==="approved"?"承認":"却下"}: ${hesc(r.x.by||"")}（${r.x.decidedAt||""}）${r.x.note?"／理由: "+hesc(r.x.note):""}</div>
+        <div class="rl" style="white-space:normal">📝 ${hesc(r.x.reason)}</div></span></div>`).join("")
     :'<div class="empty" style="border:1px solid var(--line);border-radius:12px">まだありません。</div>')}
 function decideOT(sid,id,st){
   const apply=note=>{
@@ -1252,7 +1296,7 @@ function renderMyBook(){const el=document.getElementById("myBook");if(!el)return
   el.innerHTML=buildBook(me.id,mi,false);
   renderOTMine()}
 
-function adminPunchCtx(){return !!(me&&me.admin&&(pSid!==me.id||pDate!==todayKey()))} /* 打刻管理からの操作か */
+function adminPunchCtx(){return !!(me&&me.admin&&!pOwnDay)} /* 打刻管理からの操作か（本人の勤務日ビューは対象外） */
 function openEdit(i){editIdx=i;const p=getPunches()[i];
   document.getElementById("editReasonLabel").textContent=adminPunchCtx()?"修正理由（管理者権限の訂正は任意）":"修正理由（必須）";
   document.getElementById("editSub").textContent=p.type+" ／ 現在 "+p.time;
@@ -1346,7 +1390,7 @@ function renderKibou(){const a=getKibou();const el=document.getElementById("kibo
   kd.min=nmi.ym+"-01";kd.max=nmi.ym+"-"+pad(nmi.days);
   if(!a.length){el.innerHTML='<div class="empty" style="border:1px solid var(--line);border-radius:14px">まだ提出はありません。</div>';return}
   el.innerHTML=a.map((k,i)=>`<div class="req-row"><div style="flex:1"><div class="d">${jdate(k.date)}</div>
-    <div class="r">${k.type}${k.note?' ・ '+k.note:''}</div></div>
+    <div class="r">${hesc(k.type)}${k.note?' ・ '+hesc(k.note):''}</div></div>
     <span class="pend">${k.status}</span>
     <button class="edit" onclick="openKib(${i})" aria-label="修正">✎</button></div>`).join("")}
 function openKib(i){const k=getKibou()[i];
@@ -1368,14 +1412,18 @@ function openKib(i){const k=getKibou()[i];
 function closeKib(){document.getElementById("kibOv").classList.add("hide");kibEditIdx=null}
 function saveKibou(){const dt=document.getElementById("keDate").value;if(!dt){toast("日付を選んでください");return}
   const nmi=kibouTargetMi();
+  if(isKibouClosed(me.office)){toast("締め切られているため変更できません。管理者権限の職員にご相談ください");return}
   if(dt.slice(0,7)!==nmi.ym){toast("提出できるのは翌月（"+nmi.m+"月）分のみです");return}
   const a=getKibou();const wasAvail=!!a[kibEditIdx].avail;
   const tp=wasAvail?document.getElementById("keType").value:kibouType("ke");
   if(!tp){toast("「その他」の内容を入力してください");return}
   a[kibEditIdx]={date:dt,type:tp,note:document.getElementById("keNote").value.trim(),status:"申請中"};
   if(wasAvail)a[kibEditIdx].avail=true;
-  a.sort((x,y)=>x.date<y.date?-1:1);store.set(kibouKey(),a);closeKib();renderKibou();toast("希望休を修正しました")}
-function delKibou(){const a=getKibou();a.splice(kibEditIdx,1);store.set(kibouKey(),a);closeKib();renderKibou();toast("希望休を取消しました")}
+  a.sort((x,y)=>x.date<y.date?-1:1);store.set(kibouKey(),a);closeKib();renderKibou();
+  toast(wasAvail?"勤務できる日を修正しました":"希望休を修正しました")}
+function delKibou(){const a=getKibou();const wasAvail=!!(a[kibEditIdx]||{}).avail;
+  a.splice(kibEditIdx,1);store.set(kibouKey(),a);closeKib();renderKibou();
+  toast(wasAvail?"勤務できる日を取消しました":"希望休を取消しました")}
 
 /* ================= month helpers ================= */
 const WD=["日","月","火","水","木","金","土"];
@@ -1459,7 +1507,7 @@ function buildGrid(oid,mi,buf,editable){
         const sgT=(here&&c.k==="日勤"&&c.seg)?(()=>{const g=segOf(c);
           return "朝"+g.mh+"h@"+unitShort(g.mw)+"／夕"+g.eh+"h@"+unitShort(g.ew)})():null;
         const ttl=[here?(c.k+(kindT(c.k,s,u.id,wd)?" "+kindT(c.k,s,u.id,wd):"")):(isMain&&!WORKING(c.k)?c.k:""),sgT,(showNote&&c.note)?("備考:"+c.note):null,kb[d]?("希望休:"+kb[d]):null,avm[d]?("提出:"+avm[d]):null,mw[d]?((mw[d].type==="off"?"休み条件:":"出勤条件:")+mw[d].reason):null].filter(Boolean).join(" / ");
-        cells+=`<td class="cell ${cls}${mk}${tint}${canEdit?'':' ro'}" title="${ttl}" ${canEdit?`onclick="openCell('${s.id}',${d},'${u.id}')"`:''}>${ab||'・'}${km}${ntc}${splitHint?`<span class="hm">${splitHint}</span>`:''}</td>`}}
+        cells+=`<td class="cell ${cls}${mk}${tint}${canEdit?'':' ro'}" title="${hesc(ttl)}" ${canEdit?`onclick="openCell('${s.id}',${d},'${u.id}')"`:''}>${ab||'・'}${km}${ntc}${splitHint?`<span class="hm">${splitHint}</span>`:''}</td>`}}
     const cap=shCapOf(s.id,mi.ym)||(s.capDef>0?s.capDef:0);
     const hasOv=Object.prototype.hasOwnProperty.call(ovmAll,s.id);
     const effPref=hasOv?ovmAll[s.id]:((s.pref)||"");
@@ -1470,16 +1518,16 @@ function buildGrid(oid,mi,buf,editable){
     const autoNight=isMain&&!hasRole(s,"夜間支援従事者")&&arr.some(c=>c&&c.k==="夜勤");
     let nameCell;
     if(isMain){
-      nameCell=`<div class="n1">${s.name}</div><div class="n2">${roleStr(s)}</div>
+      nameCell=`<div class="n1">${hesc(s.name)}</div><div class="n2">${hesc(roleStr(s))}</div>
       ${autoNight?'<div class="n2" style="color:var(--admin);font-weight:700">＋夜間支援従事者（自動兼務）</div>':''}
-      <div class="n2">${EMPLOY_AB[s.employ]||s.employ||''}${s.qual?'・'+s.qual:''}</div>
+      <div class="n2">${hesc(EMPLOY_AB[s.employ]||s.employ||'')}${s.qual?'・'+hesc(s.qual):''}</div>
       ${editable?`<select class="prefSel${hasOv?' ovon':''}" title="この月の勤務の傾向（名簿の設定を一時的に上書き）" onchange="setShPrefOv('${s.id}','${mi.ym}',this.value)">
          <option value="__inh"${hasOv?'':' selected'}>名簿どおり（${s.pref?"⚙"+PREF_LABEL[s.pref]:"おまかせ"}）</option>
          ${["","less","day","night","dayonly","nightonly","balance","none"].map(v=>`<option value="${v}"${hasOv&&ovmAll[s.id]===v?" selected":""}>今月だけ：${v?PREF_LABEL[v]:"おまかせ"}</option>`).join("")}</select>
        <input class="capIn" type="number" min="0" step="0.5" placeholder="今月の上限h（空欄=通常）" title="この月に働ける上限時間（自動作成が厳守します）" value="${cap||''}" onchange="setShCap('${s.id}','${mi.ym}',this.value)">`
         :((effPref||cap)?`<div class="n2" style="color:var(--admin);font-weight:700">⚙ ${[effPref?PREF_LABEL[effPref]+(hasOv?"（今月）":""):null,cap?"上限"+cap+"h":null].filter(Boolean).join("・")}</div>`:'')}`}
     else{
-      nameCell=`<div class="n1" style="font-size:11.5px">${s.name} <span class="badge-e" style="color:var(--help);background:var(--help-bg)">兼務</span></div>
+      nameCell=`<div class="n1" style="font-size:11.5px">${hesc(s.name)} <span class="badge-e" style="color:var(--help);background:var(--help-bg)">兼務</span></div>
       <div class="n2">本務: ${sameOffice?"":officeName(s.office)+"・"}${unitName(s.unit)}</div>`}
     const tot=isMain
       ?`${days}日/${hrs}h<br><span style="color:var(--sub)">計${allDays}日/${allHrs}h</span>${over?'<br><span style="color:var(--danger);font-weight:700">超過</span>':short?'<br><span style="color:var(--danger);font-weight:700">不足</span>':''}${cap?`<br><span style="color:var(--admin);font-weight:700">上限${cap}h</span>`:''}`
@@ -1505,12 +1553,10 @@ function buildGrid(oid,mi,buf,editable){
         if(a&&a[d-1]&&involves(a[d-1],u.id))n++});
       cells+=`<td class="cov ${n===0?'zero':'ok'}">${n}</td>`}
     h+=`<tr><td class="nm"><div class="n2" style="font-weight:700;color:var(--ink)">${u.name}</div></td>${cells}<td class="tot"></td></tr>`});
-  {const careOK=s=>hasRole(s,"世話人")||hasRole(s,"生活支援員");
+  {const arrOf=s=>((s.office===oid&&buf[s.id])?buf[s.id]:xarr(s));
    let cells="";
    for(let d=1;d<=mi.days;d++){
-     let n=staffL.filter(s=>buf[s.id][d-1]&&WORKING(buf[s.id][d-1].k)&&careOK(s)).length;
-     getStaff().filter(s=>s.office!==oid).forEach(s=>{const a=xarr(s);
-       if(a&&a[d-1]&&WORKING(a[d-1].k)&&unitOffice(a[d-1].w)===oid&&careOK(s))n++});
+     const n=careCountAt(oid,d,arrOf);
      cells+=`<td class="cov ${n===0?'zero':'ok'}">${n}</td>`}
    h+=`<tr><td class="nm"><div class="n2" style="font-weight:700;color:var(--ink)">👤 世話人・生活支援員<br>（どちらか毎日必要）</div></td>${cells}<td class="tot"></td></tr>`}
   if(officeHasNight(oid)){
@@ -1548,8 +1594,8 @@ function buildUnitGrid(oid,mi){
   let any=false;
   getStaff().forEach(s=>{const a=store.get(mshiftKey(s.id,mi.ym),null);if(!a)return;
     for(let d=1;d<=mi.days;d++){const c=a[d-1];if(!c||!WORKING(c.k))continue;
-      if(cellMap[c.w]){any=true;
-        cellMap[c.w][d-1].push({name:s.name.split(/\s/)[0],ab:KIND_AB[c.k],night:c.k==="夜勤",help:s.office!==oid})}}});
+      cellUnits(c).forEach(w=>{if(!cellMap[w])return;any=true; /* 朝夕を別の建物にした日は両方に出す */
+        cellMap[w][d-1].push({name:s.name.split(/\s/)[0],ab:KIND_AB[c.k],night:c.k==="夜勤",help:s.office!==oid})})}});
   if(!any)return null;
   let h='<table><thead><tr><th class="nm">日付</th>';
   units.forEach(u=>h+=`<th style="padding:4px 8px">${u.name}</th>`);
@@ -1558,7 +1604,7 @@ function buildUnitGrid(oid,mi){
     h+=`<tr><td class="nm"><span class="${w===0?'sun':w===6?'sat':''}" style="font-weight:700">${mi.m}/${d}</span> <span class="n2">${WD[w]}</span></td>`;
     units.forEach(u=>{const ppl=cellMap[u.id][d-1];
       if(!ppl.length){h+='<td class="uc zero">―</td>';return}
-      h+=`<td class="uc">${ppl.map(p=>`${p.help?'<span class="hp">↗</span>':''}${p.name}<span class="kk ${p.night?'kkn':'kkd'}">${p.ab}</span>`).join("<br>")}</td>`})
+      h+=`<td class="uc">${ppl.map(p=>`${p.help?'<span class="hp">↗</span>':''}${hesc(p.name)}<span class="kk ${p.night?'kkn':'kkd'}">${p.ab}</span>`).join("<br>")}</td>`})
     h+='</tr>'}
   h+='</tbody></table>';
   return h}
@@ -1584,6 +1630,7 @@ function renderSched(){const mi=monthInfo(schOff);
     return}
   const data=store.get(mshiftKey(me.id,mi.ym),null);
   const kib=getKibou();const mw=mwMap(me.id,mi);
+  /* 希望休（休みたい日）と 勤務可（働ける日）は意味が真逆なので必ず分けて表示する */
   if(!data){el.innerHTML='<div class="empty" style="border:1px solid var(--line);border-radius:14px">この月のシフトはまだ作成されていません。</div>';return}
   let html="";
   for(let i=1;i<=mi.days;i++){const w=dow(mi,i);
@@ -1591,7 +1638,7 @@ function renderSched(){const mi=monthInfo(schOff);
     const rest=!WORKING(kind);
     const cross=WORKING(kind)&&unitOffice(cell.w)!==me.office;
     const other=WORKING(kind)&&!cross&&cell.w!==me.unit;
-    const ds=dstr(mi,i);const km=kib.find(k=>k.date===ds);
+    const ds=dstr(mi,i);const km=kib.find(k=>k.date===ds&&!k.avail);const kav=kib.find(k=>k.date===ds&&k.avail);
     const isToday=(schOff===0&&i===(new Date()).getDate());
     const stl=[];
     if(cell.note||cell.col)stl.push(`background:var(--tint-${cell.col||'y'});box-shadow:inset 4px 0 0 var(--help)`);
@@ -1600,10 +1647,10 @@ function renderSched(){const mi=monthInfo(schOff);
     html+=`<div class="sch-day ${rest?'rest':''}"${noteTint}><div class="dt"><div class="dd ${w===0?'sun':w===6?'sat':''}">${i}</div><div class="dw">${WD[w]}</div></div>
       <div style="flex:1"><div class="sh">${kind}${isToday?' <span class="badge-e" style="color:#fff;background:var(--accent)">今日</span>':''}</div>
       ${WORKING(kind)?`<div class="tt">${kindT(kind,me,cell.w,dow(mi,i))?kindT(kind,me,cell.w,dow(mi,i))+" ・ ":""}勤務先：${unitName(cell.w)}</div>`:''}
-      ${cell.note?`<div style="font-size:13px;color:var(--ink);font-weight:700;margin-top:2px">📝 ${cell.note}</div>`:''}
+      ${cell.note?`<div style="font-size:13px;color:var(--ink);font-weight:700;margin-top:2px">📝 ${hesc(cell.note)}</div>`:''}
       ${cross?`<div class="hlp">↗ 応援（${officeName(unitOffice(cell.w))}・${unitName(cell.w)}）</div>`:other?`<div class="hlp">↗ ${unitName(cell.w)}へ</div>`:''}
-      ${mw[i]?`<div class="hlp" style="color:var(--admin)">📌 ${mw[i].type==="off"?"休み条件：":""}${mw[i].reason}</div>`:''}
-      ${km?`<div class="kib">希望休を申請中</div>`:''}</div></div>`}
+      ${mw[i]?`<div class="hlp" style="color:var(--admin)">📌 ${mw[i].type==="off"?"休み条件：":""}${hesc(mw[i].reason)}</div>`:''}
+      ${km?`<div class="kib">希望休を申請中</div>`:''}${kav?`<div class="kib" style="color:var(--work)">🟢 勤務できる日として提出中（${kav.type}）</div>`:''}</div></div>`}
   el.innerHTML=html}
 
 /* ================= admin ================= */
@@ -1621,18 +1668,18 @@ function renderCheckList(){const el=document.getElementById("checkList");if(!el)
   const miss=[];
   staff.forEach(st=>{for(let i=1;i<=7;i++){
     const d=new Date(t.getFullYear(),t.getMonth(),t.getDate()-i);
-    const a=store.get("punch_"+st.id+"_"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(),[]);
-    if(a.some(x=>x.type==="出勤")&&!a.some(x=>x.type==="退勤"))miss.push({st,d:(d.getMonth()+1)+"/"+d.getDate()})}});
+    const a=store.get("punch_"+st.id+"_"+dkeyOf(d),[]);
+    if(a.some(x=>x.type==="出勤")&&!a.some(x=>x.type==="退勤")&&!nightOpen(a,i))miss.push({st,d:(d.getMonth()+1)+"/"+d.getDate()})}});
   sec.push({t:"⏰ 退勤打刻がない日（過去7日）",n:miss.length,
-    b:miss.length?miss.map(x=>`<div class="rq"><span class="rd">${x.d}</span><b>${x.st.name}</b><span class="rt">出勤のみで退勤がありません → 打刻管理から追加してください</span></div>`).join(""):""});
+    b:miss.length?miss.map(x=>`<div class="rq"><span class="rd">${x.d}</span><b>${hesc(x.st.name)}</b><span class="rt">出勤のみで退勤がありません → 打刻管理から追加してください</span></div>`).join(""):""});
   /* 2) シフト外出勤（過去7日） */
   const offs=[];
-  staff.forEach(st=>{for(let i=0;i<=7;i++){
+  staff.forEach(st=>{for(let i=0;i<7;i++){
     const d=new Date(t.getFullYear(),t.getMonth(),t.getDate()-i);
-    const a=store.get("punch_"+st.id+"_"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(),[]);
+    const a=store.get("punch_"+st.id+"_"+dkeyOf(d),[]);
     a.forEach(x=>{if(x.type==="出勤"&&x.off)offs.push({st,d:(d.getMonth()+1)+"/"+d.getDate(),time:x.time})})}});
-  sec.push({t:"🚨 シフト外の出勤（過去7日）",n:offs.length,
-    b:offs.length?offs.map(x=>`<div class="rq"><span class="rd">${x.d}</span><b>${x.st.name}</b><span class="rt">${x.time} にシフト外出勤 → 事情を確認してください</span></div>`).join(""):""});
+  sec.push({t:"🚨 シフト外の出勤（今日を含む7日間）",n:offs.length,
+    b:offs.length?offs.map(x=>`<div class="rq"><span class="rd">${x.d}</span><b>${hesc(x.st.name)}</b><span class="rt">${x.time} にシフト外出勤 → 事情を確認してください</span></div>`).join(""):""});
   /* 3) 時間外申請の承認待ち */
   let pend=0;staff.forEach(st=>{pend+=getOT(st.id).filter(x=>x.status==="pending").length});
   sec.push({t:"⏱ 時間外申請の承認待ち",n:pend,
@@ -1642,7 +1689,7 @@ function renderCheckList(){const el=document.getElementById("checkList");if(!el)
   const otSum=staff.map(st=>({st,h:getOT(st.id).filter(x=>x.status==="approved"&&x.date&&x.date.slice(0,7)===ym).reduce((a,x)=>a+x.h,0)}))
     .filter(x=>x.h>=36);
   sec.push({t:"⚖ 残業が月45時間に接近・超過（承認済み合計）",n:otSum.length,
-    b:otSum.length?otSum.map(x=>`<div class="rq"><b>${x.st.name}</b><span class="rt">今月 ${Math.round(x.h*10)/10}h ${x.h>45?'<span style="color:var(--danger);font-weight:700">／ 45h超過</span>':"（45hまで残り"+Math.round((45-x.h)*10)/10+"h）"}</span></div>`).join(""):""});
+    b:otSum.length?otSum.map(x=>`<div class="rq"><b>${hesc(x.st.name)}</b><span class="rt">今月 ${Math.round(x.h*10)/10}h ${x.h>45?'<span style="color:var(--danger);font-weight:700">／ 45h超過</span>':"（45hまで残り"+Math.round((45-x.h)*10)/10+"h）"}</span></div>`).join(""):""});
   /* 5) 有給5日義務（年度=4月起点・常勤） */
   const fy=t.getMonth()+1>=4?t.getFullYear():t.getFullYear()-1;
   const paidCnt=st=>{let c=0;
@@ -1652,7 +1699,7 @@ function renderCheckList(){const el=document.getElementById("checkList");if(!el)
     return c};
   const p5=staff.filter(st=>isFulltime(st)).map(st=>({st,c:paidCnt(st)})).filter(x=>x.c<5);
   sec.push({t:"🌴 有給が年度5日に届いていない常勤（"+fy+"年度）",n:p5.length,
-    b:p5.length?p5.map(x=>`<div class="rq"><b>${x.st.name}</b><span class="rt">年度内の有給 ${x.c}日（義務は5日）</span></div>`).join(""):""});
+    b:p5.length?p5.map(x=>`<div class="rq"><b>${hesc(x.st.name)}</b><span class="rt">年度内の有給 ${x.c}日（義務は5日）</span></div>`).join(""):""});
   el.innerHTML=sec.map(x=>`<div class="rqwrap" style="margin-bottom:10px"><div class="rqhd" style="cursor:default">${x.t}
       <span class="cap" ${x.n?'style="color:var(--danger)"':''}>${x.n}件</span></div>
     ${x.n?`<div class="rqbody">${x.b}</div>`:'<div class="rqbody"><div class="rq" style="border-top:none;color:var(--sub)">問題ありません。</div></div>'}</div>`).join("")}
@@ -1661,7 +1708,7 @@ function renderCheckList(){const el=document.getElementById("checkList");if(!el)
 let admPOff=0,apDay=null;
 function initAdmPunch(){const sel=document.getElementById("apStaff");
   sel.innerHTML=activeOffices().map(o=>`<optgroup label="${o.name}">`
-    +loginSort(officeStaff(o.id)).map(s=>`<option value="${s.id}">${s.name}（${unitName(s.unit)}）</option>`).join("")+`</optgroup>`).join("");
+    +loginSort(officeStaff(o.id)).map(s=>`<option value="${s.id}">${hesc(s.name)}（${unitName(s.unit)}）</option>`).join("")+`</optgroup>`).join("");
   admPOff=0;renderAdmBook()}
 function apMonth(d){admPOff+=d;renderAdmBook()}
 function apMi(){return monthInfo(admPOff)}
@@ -1670,7 +1717,7 @@ function renderAdmBook(){const mi=apMi();
   document.getElementById("apBook").innerHTML=buildBook(document.getElementById("apStaff").value,mi,true)}
 function openApDay(d){apDay=d;const mi=apMi();
   pSid=document.getElementById("apStaff").value;
-  pDate=mi.y+"-"+mi.m+"-"+d;
+  pDate=mi.y+"-"+mi.m+"-"+d;pOwnDay=false;
   pRefresh=function(){renderApDay();renderAdmBook()};
   const st=getStaff().find(x=>x.id===pSid)||{};
   document.getElementById("apTitle").textContent=st.name+" の打刻修正";
@@ -1690,14 +1737,14 @@ function renderApDay(){
   log.innerHTML=a.map((p,i)=>`<div class="log-row">
     <span class="tp"><span class="k ${TYPES[p.type]||''}"></span>${p.type}${p.off?' <span class="badge-e" style="color:var(--danger);background:var(--danger-bg)">シフト外</span>':''}${p.edited?' <span class="badge-e">修正済</span>':''}
     ${p.place?`<span class="cm">📍 ${unitName(p.place)}${unitOffice(p.place)!==st.office?'（応援）':''}</span>`:''}
-    ${p.comment?`<span class="cm">📝 ${p.comment}</span>`:''}
-    ${p.editedBy?`<span class="cm">✎ 管理者権限の ${p.editedBy} が修正</span>`:''}
-    ${p.addedBy?`<span class="cm">＋ 管理者権限の ${p.addedBy} が追加</span>`:''}</span>
+    ${p.comment?`<span class="cm">📝 ${hesc(p.comment)}</span>`:''}
+    ${p.editedBy?`<span class="cm">✎ 管理者権限の ${hesc(p.editedBy)} が修正</span>`:''}
+    ${p.addedBy?`<span class="cm">＋ 管理者権限の ${hesc(p.addedBy)} が追加</span>`:''}</span>
     <span class="tm">${p.time}</span>
     <button class="edit" onclick="openEdit(${i})" aria-label="修正">✎</button></div>`).join("")
   +dl.map(p=>`<div class="log-row" style="opacity:.6">
     <span class="tp"><span class="k ${TYPES[p.type]||''}"></span><s>${p.type}</s> <span class="badge-e" style="color:var(--danger);background:var(--danger-bg)">削除済み</span>
-    <span class="cm">🗑 ${p.reason}（${p.delAt} に削除${p.by?'・'+p.by:''}）</span></span>
+    <span class="cm">🗑 ${hesc(p.reason)}（${p.delAt} に削除${p.by?'・'+hesc(p.by):''}）</span></span>
     <span class="tm"><s>${p.time}</s></span>
     <span style="width:32px;flex-shrink:0"></span></div>`).join("")}
 function apAdd(){const tp=document.getElementById("apType").value;
@@ -1728,12 +1775,14 @@ function renderDelLog(){const ids=activeStaff().map(s=>s.id);
     (store.get(k.slice(3),[])||[]).forEach(p=>rows.push({s,date,p}))});
   /* 絞り込み・並べ替え */
   const shown=rows.filter(r=>!dlFilter||r.s.id===dlFilter);
-  const cmpD=(a,b)=>a.date<b.date?-1:(a.date>b.date?1:0);
+  /* キーは "2026-8-26" 形式（ゼロ埋めなし）なので、そのまま文字列比較すると 9月が12月より後になる */
+  const dnum=x=>{const p=String(x.date).split("-");return (+p[0])*10000+(+p[1])*100+(+p[2])};
+  const cmpD=(a,b)=>dnum(a)-dnum(b);
   if(dlSort==="old")shown.sort(cmpD);
   else if(dlSort==="staff")shown.sort((a,b)=>{const n=(a.s.name||"").localeCompare(b.s.name||"","ja");return n||-cmpD(a,b)});
   else shown.sort((a,b)=>-cmpD(a,b));
   const staffOpts=[...new Set(rows.map(r=>r.s.id))].map(id=>{const st=getStaff().find(x=>x.id===id);
-    return `<option value="${id}"${dlFilter===id?" selected":""}>${st?st.name:id}</option>`}).join("");
+    return `<option value="${id}"${dlFilter===id?" selected":""}>${hesc(st?st.name:id)}</option>`}).join("");
   const bar=`<div style="display:flex;gap:8px;margin-bottom:10px">
     <select id="dlStaff" onchange="dlChange()" style="flex:1;font-size:12px"><option value="">全職員</option>${staffOpts}</select>
     <select id="dlSort" onchange="dlChange()" style="flex:1;font-size:12px">
@@ -1743,9 +1792,9 @@ function renderDelLog(){const ids=activeStaff().map(s=>s.id);
   document.getElementById("delLogList").innerHTML=bar+(shown.length?shown.map(r=>{
     const d=r.date.split("-");
     return `<div class="adm-row"><span style="min-width:0;flex:1">
-      <div class="nm">${d[1]}/${d[2]}　${r.s.name}
+      <div class="nm">${d[1]}/${d[2]}　${hesc(r.s.name)}
         <span class="badge-e" style="margin-left:6px;color:var(--danger);background:var(--danger-bg)">${r.p.type} ${r.p.time} を削除</span></div>
-      <div class="rl">理由：${r.p.reason} ・ ${r.p.delAt} に削除${r.p.by?" ・ 削除者："+r.p.by:"（本人）"}${r.p.place?" ・ 場所："+unitName(r.p.place):""}</div></span></div>`}).join("")
+      <div class="rl">理由：${hesc(r.p.reason)} ・ ${r.p.delAt} に削除${r.p.by?" ・ 削除者："+hesc(r.p.by):"（本人）"}${r.p.place?" ・ 場所："+unitName(r.p.place):""}</div></span></div>`}).join("")
     :'<div class="empty" style="border:1px solid var(--line);border-radius:14px">削除の記録はまだありません。</div>')}
 
 function renderRoster(){const staff=getStaff();let html="";
@@ -1753,15 +1802,15 @@ function renderRoster(){const staff=getStaff();let html="";
     const guests=loginSort(staff.filter(x=>x.office!==o.id&&(x.help||[]).some(uid=>officeUnits(o.id).some(u=>u.id===uid))));
     if(!list.length&&!guests.length)return;
     html+=`<div class="grouphd">${o.name}（${list.length}名${guests.length?"＋兼務"+guests.length+"名":""}）</div>`;
-    html+=list.map(s=>`<div class="adm-row"><span class="ava ${s.admin?'adm':''}" style="width:34px;height:34px;font-size:13px">${initial(s.name)}</span>
-      <span style="min-width:0"><div class="nm">${s.name}${s.admin?'<span class="adm-badge">管理者権限</span>':''}</div>
-      <div class="rl">${unitName(s.unit)} ・ ${roleStr(s)} ・ ${s.employ||''}${s.qual?' ・ '+s.qual:''}${isWorkWish(s)?' ・ <span style="color:var(--work);font-weight:700">勤務可提出型</span>':''}</div>
+    html+=list.map(s=>`<div class="adm-row"><span class="ava ${s.admin?'adm':''}" style="width:34px;height:34px;font-size:13px">${hesc(initial(s.name))}</span>
+      <span style="min-width:0"><div class="nm">${hesc(s.name)}${s.admin?'<span class="adm-badge">管理者権限</span>':''}</div>
+      <div class="rl">${unitName(s.unit)} ・ ${hesc(roleStr(s))} ・ ${hesc(s.employ||'')}${s.qual?' ・ '+hesc(s.qual):''}${isWorkWish(s)?' ・ <span style="color:var(--work);font-weight:700">勤務可提出型</span>':''}</div>
       ${(s.pref||helpUnitsOf(s).length||s.capDef>0)?`<div class="rl" style="color:var(--admin);font-weight:700">⚙ ${[s.pref?"傾向: "+PREF_LABEL[s.pref]:null,helpUnitsOf(s).length?"兼務可: "+helpUnitsOf(s).map(unitShort).join("・"):null,s.capDef>0?"月上限"+s.capDef+"h":null].filter(Boolean).join("　")}</div>`:''}</span>
       <button class="go" onclick="openStaff('${s.id}')">編集</button></div>`).join("");
     if(guests.length){
       html+=`<div class="grouphd" style="font-size:11px;opacity:.85">🤝 兼務（他事業所の所属で、この事業所の建物に入れる職員）</div>`;
-      html+=guests.map(s=>`<div class="adm-row" style="opacity:.9"><span class="ava" style="width:34px;height:34px;font-size:13px">${initial(s.name)}</span>
-        <span style="min-width:0"><div class="nm">${s.name}<span class="badge-e" style="color:var(--help);background:var(--help-bg)">兼務</span></div>
+      html+=guests.map(s=>`<div class="adm-row" style="opacity:.9"><span class="ava" style="width:34px;height:34px;font-size:13px">${hesc(initial(s.name))}</span>
+        <span style="min-width:0"><div class="nm">${hesc(s.name)}<span class="badge-e" style="color:var(--help);background:var(--help-bg)">兼務</span></div>
         <div class="rl">本務: ${officeName(s.office)}・${unitName(s.unit)} ／ 入れる建物: ${(s.help||[]).filter(uid=>unitOffice(uid)===o.id).map(unitShort).join("・")}</div></span>
         <button class="go" onclick="openStaff('${s.id}')">編集</button></div>`).join("")}});
   document.getElementById("rosterList").innerHTML=html}
@@ -1807,7 +1856,9 @@ function saveStaffForm(){const g=id=>document.getElementById(id);const nm=g("stN
   if(stEditId){Object.assign(a.find(x=>x.id===stEditId),rec)}
   else{rec.id="s"+Date.now();a.push(rec)}
   saveStaffList(a);closeStaff();renderRoster();toast(stEditId?"職員情報を更新しました":"職員を登録しました")}
-function delStaff(){const a=getStaff().filter(s=>s.id!==stEditId);saveStaffList(a);closeStaff();renderRoster();toast("職員を削除しました")}
+function delStaff(){const s=getStaff().find(x=>x.id===stEditId);if(!s)return;
+  askConfirm(s.name+" さんを名簿から削除します。シフト・打刻の記録は残りますが、名簿からは消えて元に戻せません。よろしいですか？","削除する",()=>{
+    saveStaffList(getStaff().filter(x=>x.id!==stEditId));closeStaff();renderRoster();toast(s.name+" さんを削除しました")})}
 
 /* ---- shift builder (office grid) ---- */
 let shDirty=false;
@@ -1830,9 +1881,10 @@ function renderShift(){if(typeof endPaint==="function"&&paintMode)endPaint();
   const sel=document.getElementById("shOffice");curShOffice=sel.value||curShOffice;
   const mi=monthInfo(admOff);
   document.getElementById("shWk").textContent=mi.label+mi.rel;
-  B={};officeStaff(curShOffice).forEach(s=>{B[s.id]=getMShift(s,mi).map(c=>({k:c.k,w:c.w}))});
+  /* 保存済みの内容をそのまま作業バッファへ（朝夕分割・備考・色を落とさない） */
+  B={};officeStaff(curShOffice).forEach(s=>{B[s.id]=getMShift(s,mi).map(c=>copyCell(c,s))});
   getStaff().filter(s=>s.office!==curShOffice&&(s.help||[]).some(uid=>officeUnits(curShOffice).some(u=>u.id===uid)))
-    .forEach(g=>{B[g.id]=getMShift(g,mi).map(c=>({k:c.k,w:c.w}))}); /* 兼務者も編集対象に */
+    .forEach(g=>{B[g.id]=getMShift(g,mi).map(c=>copyCell(c,g))}); /* 兼務者も編集対象に */
   renderKibClosePanel();renderReqPanel();renderShiftGrid();renderPubState()}
 /* ---- 希望休の受付締切（施設ごと・翌月分） ---- */
 function renderKibClosePanel(){const el=document.getElementById("kibClosePanel");if(!el)return;
@@ -1861,7 +1913,7 @@ function renderReqPanel(){const mi=monthInfo(admOff);const rows=[];
   rows.sort((a,b)=>a.d<b.d?-1:(a.d>b.d?1:0));
   const body=rows.length?rows.map(r=>`<div class="rq"><span class="rd">${jdate(r.d)}</span>
       <span class="${r.t==='kib'?'rq-k':r.t==='av'?'rq-a':r.t==='mwo'?'rq-o':'rq-m'}">${r.t==='kib'?'休希望':r.t==='av'?'勤務可':r.t==='mwo'?'休み条件':'出勤条件'}</span>
-      <b>${r.s.name}</b><span class="rt">${r.txt}</span></div>`).join("")
+      <b>${hesc(r.s.name)}</b><span class="rt">${hesc(r.txt)}</span></div>`).join("")
     :'<div class="rq" style="border-top:none;color:var(--sub)">この月の希望休・出勤条件はまだありません。</div>';
   document.getElementById("reqPanel").innerHTML=
     `<div class="rqwrap"><div class="rqhd" onclick="rqToggle()">${reqOpen?'▾':'▸'} この月の希望休・出勤条件
@@ -1903,24 +1955,24 @@ function renderShWarn(mi){const el=document.getElementById("shWarn");if(!el)retu
        const shown=gaps.slice(0,8).join("、")+(gaps.length>8?" ほか"+(gaps.length-8)+"日":"");
        dayGapMsgs.push("<b>"+u.name+"</b>（"+gaps.length+"日）: "+shown)}});
    if(dayGapMsgs.length)msgs.push("☀ <b>日中の配置（平日=日勤・土日=通し）ができていない建物・日</b>があります<br>"+dayGapMsgs.join("<br>"))}
-  {const careOK=s=>hasRole(s,"世話人")||hasRole(s,"生活支援員");const gaps=[];
+  {const arrOf=s=>(B[s.id]||store.get(mshiftKey(s.id,mi.ym),null));const gaps=[];
    for(let d=1;d<=mi.days;d++){
-     if(!staffL.some(s=>B[s.id]&&B[s.id][d-1]&&WORKING(B[s.id][d-1].k)&&careOK(s)))gaps.push(mi.m+"/"+d)}
+     if(careCountAt(curShOffice,d,arrOf)===0)gaps.push(mi.m+"/"+d)}
    if(gaps.length)msgs.push("👤 <b>世話人・生活支援員のどちらも勤務していない日</b>: "+gaps.join("、"))}
   const hrsOf=s=>B[s.id]?B[s.id].reduce((a,c)=>a+cellH(c,s),0):0;
   const low=staffL.filter(s=>isFulltime(s)&&!isWorkWish(s)&&shPrefOf(s.id,mi.ym)!=="none")
     .map(s=>({s,h:hrsOf(s),cap:shCapOf(s.id,mi.ym)}))
     .filter(x=>x.h<(x.cap?Math.min(minH,x.cap):minH)); // 上限が基準より低い職員は上限を基準に
-  if(low.length)msgs.push("⏱ <b>常勤で月"+minH+"時間に足りない職員</b>: "+low.map(x=>x.s.name+"（"+x.h+"h／あと"+((x.cap?Math.min(minH,x.cap):minH)-x.h)+"h"+(x.cap&&x.cap<minH?"・上限"+x.cap+"h設定":"")+"）").join("、"));
+  if(low.length)msgs.push("⏱ <b>常勤で月"+minH+"時間に足りない職員</b>: "+low.map(x=>hesc(x.s.name)+"（"+x.h+"h／あと"+((x.cap?Math.min(minH,x.cap):minH)-x.h)+"h"+(x.cap&&x.cap<minH?"・上限"+x.cap+"h設定":"")+"）").join("、"));
   const maxH=maxFulltimeH(mi.days);
   const oversL=staffL.filter(s=>isFulltime(s)&&!isWorkWish(s)).map(s=>({s,h:hrsOf(s)})).filter(x=>x.h>maxH);
-  if(oversL.length)msgs.push("⛔ <b>常勤で法定の上限（月"+maxH+"時間）を超えている職員</b>: "+oversL.map(x=>x.s.name+"（"+x.h+"h）").join("、")+"<br><span style='font-weight:400'>勤務日を減らしてください。自動作成は上限内で組みますが、手直しで超えることがあります。</span>");
+  if(oversL.length)msgs.push("⛔ <b>常勤で法定の上限（月"+maxH+"時間）を超えている職員</b>: "+oversL.map(x=>hesc(x.s.name)+"（"+x.h+"h）").join("、")+"<br><span style='font-weight:400'>勤務日を減らしてください。自動作成は上限内で組みますが、手直しで超えることがあります。</span>");
   const overs=staffL.map(s=>({s,h:hrsOf(s),cap:shCapOf(s.id,mi.ym)})).filter(x=>x.cap&&x.h>x.cap);
-  if(overs.length)msgs.push("⛔ <b>今月の上限時間を超えている職員</b>: "+overs.map(x=>x.s.name+"（"+x.h+"h／上限"+x.cap+"h）").join("、")+"<br><span style='font-weight:400'>勤務日を減らすか、上限の入力を見直してください。</span>");
+  if(overs.length)msgs.push("⛔ <b>今月の上限時間を超えている職員</b>: "+overs.map(x=>hesc(x.s.name)+"（"+x.h+"h／上限"+x.cap+"h）").join("、")+"<br><span style='font-weight:400'>勤務日を減らすか、上限の入力を見直してください。</span>");
   const longRuns=staffL.map(s=>{let mx=0,w=0;
     (B[s.id]||[]).forEach(c=>{if(WORKING(c.k)){w++;if(w>mx)mx=w}else w=0});return{s,mx}})
     .filter(x=>x.mx>=7);
-  if(longRuns.length)msgs.push("🔁 <b>連続勤務が7日以上の職員</b>: "+longRuns.map(x=>x.s.name+"（"+x.mx+"連勤）").join("、")+"<br><span style='font-weight:400'>公休の位置を調整するか、応援・増員を検討してください。</span>");
+  if(longRuns.length)msgs.push("🔁 <b>連続勤務が7日以上の職員</b>: "+longRuns.map(x=>hesc(x.s.name)+"（"+x.mx+"連勤）").join("、")+"<br><span style='font-weight:400'>公休の位置を調整するか、応援・増員を検討してください。</span>");
   el.innerHTML=msgs.length?`<div class="perr" style="margin:0 0 12px">${msgs.join("<hr style='border:none;border-top:1px solid var(--danger-bg);margin:8px 0'>")}</div>`:"";
   return msgs.length}
 /* ---- 建物×曜日の勤務時間帯 設定モーダル（管理者権限） ---- */
@@ -2049,7 +2101,7 @@ function applyCell(){const c=B[cellSid][cellDay-1];
   shDirty=true;closeCell();renderShiftGrid()}
 function closeCell(){document.getElementById("cellOv").classList.add("hide")}
 function clearMonth(){const mi=monthInfo(admOff);
-  officeStaff(curShOffice).forEach(s=>{B[s.id]=Array.from({length:mi.days},()=>({k:"未定",w:s.unit}))});
+  officeStaff(curShOffice).forEach(s=>{B[s.id]=Array.from({length:mi.days},()=>({k:"未定",w:homeUnitOf(s)}))});
   shDirty=true;renderShiftGrid();toast("白紙に戻しました（保存するまで確定しません）")}
 function saveShift(silent){const mi=monthInfo(admOff);
   if(isPub(curShOffice,mi.ym)){ /* 公開後の変更は誰が・いつ・どこを変えたか記録する */
@@ -2092,7 +2144,7 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
   const guestIds=new Set(guests.map(g=>g.id));
   const ALL=staffL.concat(guests);
   const kb={},mw={},av={};ALL.forEach(s=>{kb[s.id]=kibSet(s.id,mi);mw[s.id]=mwMap(s.id,mi);av[s.id]=availMap(s.id,mi)});
-  const minH=minFulltimeH(mi.days);            // 常勤の月間基準時間（31日=177h/30日=171h）
+  const minH=minFulltimeH(mi.days);            // 常勤の月間基準時間（31日=176h/30日=168h）
   // 勤務の傾向（事前設定）: 少なめ=非常勤の上限を下げ、候補としても選ばれにくく
   const pref=s=>shPrefOf(s.id,mi.ym);          // 名簿のデフォルト＋この月だけの上書きを反映
   const manCap=s=>shCapOf(s.id,mi.ym)||(s.capDef>0?s.capDef:null); // 上限=この月の入力＞名簿の既定（どちらも厳守）
@@ -2105,19 +2157,25 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
   ALL.forEach(s=>{const own=!guestIds.has(s.id);const saved=store.get(mshiftKey(s.id,mi.ym),null);
     B[s.id]=Array.from({length:mi.days},(_,i)=>{
       const c=saved&&saved[i];
-      const keep=c&&WORKING(c.k)&&(own?!inUnits(c.w):true);
-      return keep?{k:c.k,w:c.w}:{k:"休",w:s.unit}});
+      if(!c)return{k:"休",w:homeUnitOf(s)};
+      /* 兼務者(ゲスト)は保存済みシフトをそのまま土台にする（有休・備考・朝夕分割も消さない） */
+      if(!own)return copyCell(c,s);
+      /* 自事業所の職員は白紙から。ただし他事業所への兼務勤務と「有休」は残す */
+      if(c.k==="有休")return{k:"有休",w:c.w||homeUnitOf(s)};
+      return (WORKING(c.k)&&!inUnits(c.w))?copyCell(c,s):{k:"休",w:homeUnitOf(s)}});
     B[s.id].forEach(c=>{if(WORKING(c.k)){const hh=cellH(c,s);hours[s.id]+=hh;
       if(c.k==="夜勤")nH[s.id]+=hh;else dH[s.id]+=hh}})});
   const setCell=(s,d,k,w)=>{B[s.id][d-1]={k:k,w:w||homeUnitOf(s)};const hh=kindH(k,s);hours[s.id]+=hh;
     if(k==="夜勤")nH[s.id]+=hh;else dH[s.id]+=hh};
   const mwOff=(s,d)=>mw[s.id][d]&&mw[s.id][d].type==="off";
-  const free=(s,d)=>!WORKING(B[s.id][d-1].k)&&!kb[s.id][d]&&!mwOff(s,d);
+  /* 空き=勤務が入っていない日。有休は「働かない日」なので自動作成では絶対に使わない */
+  const free=(s,d)=>{const c=B[s.id][d-1];
+    return !WORKING(c.k)&&c.k!=="有休"&&!kb[s.id][d]&&!mwOff(s,d)};
   // 日中の必要区分: 平日=日勤（朝6-10/夕16-20）・土日=通し（9-18）※手順1でも使うためここで定義
   const reqKindOf=d=>{const w=dow(mi,d);return (w===0||w===6)?"通し":"日勤"};
   // 1) 条件の反映：「必ず出勤」は出勤に（曜日に応じ日勤/通し・夜勤専門は夜勤）、「必ず休み」は休のまま固定
   staffL.forEach(s=>{if(shPrefOf(s.id,mi.ym)==="none")return; // 勤務なしの職員には入れない
-    for(let d=1;d<=mi.days;d++){if(mw[s.id][d]&&mw[s.id][d].type!=="off")
+    for(let d=1;d<=mi.days;d++){if(mw[s.id][d]&&mw[s.id][d].type!=="off"&&B[s.id][d-1].k!=="有休")
     setCell(s,d,(hasRole(s,"夜間支援従事者")&&rolesOf(s).length===1)?"夜勤":reqKindOf(d))}});
   // 1.5) 公休の均等配置：各職員の「休みの目安日」を月内に等間隔で仮置きし、
   //      割当はその日を避ける（人が足りない日だけ使う）→ 公休が偏らない
@@ -2277,11 +2335,11 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
         setCell(cand,d+1,kk,uid);
         if(window.__rep)window.__rep.push({day:d+1,from:s.name,to:cand.name,k:kk,u:uid})}})}
   // 3.5) 世話人または生活支援員のどちらかが、毎日1名以上勤務するようにする（管理職は最後の手段）
-  {const careOK=s=>hasRole(s,"世話人")||hasRole(s,"生活支援員");
-   const pool=nonMgr(dayPool.filter(s=>careOK(s)&&!guestIds.has(s.id)));
-   const poolM=mgrOf(dayPool.filter(s=>careOK(s)&&!guestIds.has(s.id)));
+  {const arrOf=s=>(B[s.id]||store.get(mshiftKey(s.id,mi.ym),null));
+   const pool=nonMgr(dayPool.filter(s=>isCare(s)&&!guestIds.has(s.id)));
+   const poolM=mgrOf(dayPool.filter(s=>isCare(s)&&!guestIds.has(s.id)));
    for(let d=1;d<=mi.days;d++){
-     if(staffL.some(s=>WORKING(B[s.id][d-1].k)&&careOK(s)))continue;
+     if(careCountAt(curShOffice,d,arrOf)>0)continue;
      let c=null;for(let m=0;m<3&&!c;m++)c=pickM(pool,d,m);
      for(let m=0;m<3&&!c;m++)c=pickM(poolM,d,m);
      if(c)setCell(c,d,reqKindOf(d))}}   // 置けない日は空けたまま→警告表示
@@ -2348,8 +2406,11 @@ function fteByRole(){const mi=monthInfo(admOff);const F=minFulltimeH(mi.days);co
       plan.forEach(c=>{if(!c||!WORKING(c.k))return;
         const role=c.k==="夜勤"?"夜間支援従事者":primaryRole(s);
         R[role]=(R[role]||0)+cellH(c,s)})}
-    else{for(let d=1;d<=mi.days;d++){const h=actualHours(s.id,mi,d);
-      if(h)R[primaryRole(s)]=(R[primaryRole(s)]||0)+h}}});
+    else{const plan=store.get(mshiftKey(s.id,mi.ym),null);
+      for(let d=1;d<=mi.days;d++){const h=actualHours(s.id,mi,d);if(!h)continue;
+        const pc=plan?plan[d-1]:null; /* 予定が夜勤の日は夜間支援従事者に計上（自動兼務） */
+        const role=(pc&&pc.k==="夜勤")?"夜間支援従事者":primaryRole(s);
+        R[role]=(R[role]||0)+h}}});
   const out={};Object.keys(R).forEach(k=>out[k]=fl1(R[k]/F));return out}
 function renderPrevStd(){const el=document.getElementById("prevStd");if(!el)return;
   const py=getPY(curShOffice);const req=reqStaff(py);const fte=fteByRole();
@@ -2394,7 +2455,7 @@ function previewRows(){const mi=monthInfo(admOff);
     const notes=[];
     if(rolesOf(s).length>1)notes.push("兼務: "+rolesOf(s).slice(1).join("・"));
     if(plan&&!hasRole(s,"夜間支援従事者")&&plan.some(c=>c&&c.k==="夜勤"))notes.push("夜間支援従事者（夜勤兼務）");
-    if(plan){const helps=[...new Set(plan.filter(c=>c&&WORKING(c.k)&&c.w!==s.unit).map(c=>unitName(c.w)))];
+    if(plan){const helps=[...new Set(plan.flatMap(c=>cellUnits(c)).filter(w=>w!==s.unit).map(unitName))];
       if(helps.length)notes.push("応援: "+helps.join("・"))}
     return {no:i+1,s:s,cells:cells,total:total,avg:avg,note:notes.join(" ／ ")}})}
 function renderPreview(){const mi=monthInfo(admOff);
@@ -2407,9 +2468,9 @@ function renderPreview(){const mi=monthInfo(admOff);
   h+='<table><thead><tr><th style="padding:4px 6px">No.</th><th style="padding:4px 6px;min-width:70px">職種</th><th style="padding:4px 6px;min-width:56px">勤務形態</th><th style="padding:4px 6px;min-width:56px">資格</th><th class="nm">氏名</th>';
   for(let d=1;d<=mi.days;d++){const w=dow(mi,d);h+=`<th class="${w===0?'sun':w===6?'sat':''}" style="padding:4px 3px">${d}<br>${WD[w]}</th>`}
   h+='<th style="padding:4px 6px">合計</th><th style="padding:4px 6px">週平均</th><th style="padding:4px 8px;min-width:140px">兼務状況等</th></tr></thead><tbody>';
-  rows.forEach(r=>{h+=`<tr><td class="tot">${r.no}</td><td class="tot" style="text-align:left">${roleStr(r.s)}</td><td class="tot">${r.s.employ||""}</td><td class="tot">${r.s.qual||""}</td><td class="nm"><div class="n1">${r.s.name}</div></td>`;
+  rows.forEach(r=>{h+=`<tr><td class="tot">${r.no}</td><td class="tot" style="text-align:left">${hesc(roleStr(r.s))}</td><td class="tot">${hesc(r.s.employ||"")}</td><td class="tot">${hesc(r.s.qual||"")}</td><td class="nm"><div class="n1">${hesc(r.s.name)}</div></td>`;
     r.cells.forEach(v=>{h+=`<td class="cell ro" style="cursor:default;font-weight:600;font-size:10.5px">${v?v:""}</td>`});
-    h+=`<td class="tot" style="font-weight:700">${r.total}h</td><td class="tot">${r.avg}h</td><td class="tot" style="text-align:left">${r.note}</td></tr>`});
+    h+=`<td class="tot" style="font-weight:700">${r.total}h</td><td class="tot">${r.avg}h</td><td class="tot" style="text-align:left">${hesc(r.note)}</td></tr>`});
   h+='</tbody></table>';
   document.getElementById("prevBody").innerHTML=h;
   renderPrevStd()}
@@ -2445,7 +2506,7 @@ function downloadPreviewCSV(){const b=buildPreviewCSV();
 function mwReasonUI(){const sel=document.getElementById("mwReasonSel");
   document.getElementById("mwReasonTxt").classList.toggle("hide",sel.value.indexOf("その他")!==0)}
 function openMW(){const mi=monthInfo(admOff);const sel=document.getElementById("mwStaff");
-  sel.innerHTML=officeStaff(curShOffice).map(s=>`<option value="${s.id}">${s.name}（${unitName(s.unit)}）</option>`).join("");
+  sel.innerHTML=officeStaff(curShOffice).map(s=>`<option value="${s.id}">${hesc(s.name)}（${unitName(s.unit)}）</option>`).join("");
   document.getElementById("mwTitle").textContent="出勤・休みの条件一覧 ― "+officeName(curShOffice);
   document.getElementById("mwListTitle").textContent=mi.label+"の条件";
   document.getElementById("mwDate").value=mi.ym+"-01";
@@ -2472,7 +2533,7 @@ function renderMWList(){const mi=monthInfo(admOff);const rows=[];
   rows.sort((a,b)=>a.x.date<b.x.date?-1:(a.x.date>b.x.date?1:0));
   const html=rows.map(r=>`<div class="mw-row"><span class="d">${jdate(r.x.date)}</span>
       <span class="${r.x.type==='off'?'rq-o':'rq-m'}">${r.x.type==='off'?'休み':'出勤'}</span>
-      <span class="r"><b>${r.s.name}</b>（${unitName(r.s.unit)}）・ ${r.x.reason}</span>
+      <span class="r"><b>${hesc(r.s.name)}</b>（${unitName(r.s.unit)}）・ ${hesc(r.x.reason)}</span>
       <button class="edit" onclick="delMW('${r.s.id}',${r.i})" aria-label="削除">🗑</button></div>`).join("");
   document.getElementById("mwList").innerHTML=html||'<div class="empty">この月の登録はまだありません。</div>'}
 
@@ -2502,12 +2563,17 @@ function renderAgg(){const mi=monthInfo(aggOff);document.getElementById("aggWk")
   const staff=activeStaff();
   const A={},R={};activeOffices().forEach(o=>{A[o.id]={placed:0,own:0,inH:0,outH:0};R[o.id]={}});
   staff.forEach(s=>{const data=store.get(mshiftKey(s.id,mi.ym),null);if(!data)return;
-    data.forEach(c=>{const h=cellH(c,s);if(h<=0)return;const wo=unitOffice(c.w)||s.office;
+    data.forEach(c=>{
       /* 夜勤の時間は「夜間支援従事者」として計上（非該当職員は自動兼務扱い） */
-      const role=c.k==="夜勤"?"夜間支援従事者":primaryRole(s);
-      if(A[wo]){A[wo].placed+=h;R[wo][role]=(R[wo][role]||0)+h}
-      if(wo===s.office){if(A[wo])A[wo].own+=h}
-      else{if(A[wo])A[wo].inH+=h;if(A[s.office])A[s.office].outH+=h}})});
+      const role=c&&c.k==="夜勤"?"夜間支援従事者":primaryRole(s);
+      /* 朝と夕で建物が違う日は、それぞれの建物（＝事業所）に分けて計上する */
+      cellUnits(c).forEach(w=>{const h=partH(c,s,w);if(h<=0)return;const wo=unitOffice(w)||s.office;
+        if(A[wo]){A[wo].placed+=h;R[wo][role]=(R[wo][role]||0)+h}
+        if(wo===s.office){if(A[wo])A[wo].own+=h}
+        else{if(A[wo])A[wo].inH+=h;if(A[s.office])A[s.office].outH+=h}})})});
+  const r1=x=>Math.round(x*10)/10;
+  Object.keys(A).forEach(o=>{A[o].placed=r1(A[o].placed);A[o].own=r1(A[o].own);A[o].inH=r1(A[o].inH);A[o].outH=r1(A[o].outH);
+    Object.keys(R[o]).forEach(k=>R[o][k]=r1(R[o][k]))});
   const roleOrder=GH_ROLES.slice();
   let html="";activeOffices().forEach(o=>{const a=A[o.id];
     const roles=Object.keys(R[o.id]).sort((x,y)=>{
