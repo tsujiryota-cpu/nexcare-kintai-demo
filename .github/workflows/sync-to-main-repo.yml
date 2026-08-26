@@ -1,0 +1,93 @@
+# 公開デモ（このリポジトリ）の変更を、開発本体 NEXCAREjapan/nexcare-kintai へ自動で送る仕組み。
+#
+# しくみ: main に push されると index.html と docs/ をコピーして、開発本体に
+#         ブランチ sync/from-demo を作り、プルリクエスト（取り込み依頼）を出す。
+#         いきなり本体の main を書き換えないので、取り込む前に中身を確認できる。
+#
+# 準備（1回だけ）: このリポジトリの Settings → Secrets and variables → Actions で
+#         MIRROR_TOKEN という名前のシークレットを登録する（作り方は docs/自動同期の設定.md）。
+#         未登録のうちは、エラーにせず何もせずに終了する。
+name: 開発本体へ同期
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "docs/**"
+  workflow_dispatch: # 手動でも実行できる
+
+env:
+  TARGET_REPO: NEXCAREjapan/nexcare-kintai
+  TARGET_BRANCH: sync/from-demo
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 同期の設定があるか確認
+        id: gate
+        env:
+          TOKEN: ${{ secrets.MIRROR_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "MIRROR_TOKEN が未設定のため、同期はスキップします。"
+            echo "設定方法: docs/自動同期の設定.md"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 公開デモ側を取得
+        if: steps.gate.outputs.ok == 'true'
+        uses: actions/checkout@v4
+
+      - name: 開発本体を取得
+        if: steps.gate.outputs.ok == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.TARGET_REPO }}
+          token: ${{ secrets.MIRROR_TOKEN }}
+          path: target
+
+      - name: 変更を送り、取り込み依頼（プルリク）を出す
+        if: steps.gate.outputs.ok == 'true'
+        working-directory: target
+        env:
+          GH_TOKEN: ${{ secrets.MIRROR_TOKEN }}
+        run: |
+          set -euo pipefail
+          git checkout -B "$TARGET_BRANCH"
+
+          # アプリ本体と仕様書だけをコピーする（開発本体の他のファイルは触らない）
+          cp ../index.html index.html
+          mkdir -p docs
+          cp -a ../docs/. docs/
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "開発本体との差分はありません。何もせず終了します。"
+            exit 0
+          fi
+
+          SUBJECT="$(cd .. && git log -1 --pretty=%s)"
+          git config user.name "ニコライフ勤怠デモ 自動同期"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "公開デモから同期: ${SUBJECT}"
+          git push --force origin "$TARGET_BRANCH"
+
+          OPEN_PR="$(gh pr list --repo "$TARGET_REPO" --head "$TARGET_BRANCH" --state open --json number --jq '.[].number' | head -1)"
+          if [ -n "$OPEN_PR" ]; then
+            echo "既存の取り込み依頼 #${OPEN_PR} を更新しました。"
+          else
+            gh pr create --repo "$TARGET_REPO" --head "$TARGET_BRANCH" \
+              --title "公開デモの変更を取り込む" \
+              --body "$(printf '%s\n' \
+                "公開デモ（tsujiryota-cpu/nexcare-kintai-demo）の main に入った変更を自動で送っています。" \
+                "" \
+                "- 対象ファイル: \`index.html\` ・ \`docs/\`" \
+                "- 最新のコミット: ${SUBJECT}" \
+                "" \
+                "内容を確認して問題なければマージしてください。デモ側を更新するたびに、このプルリクが自動で追記されます。")"
+            echo "取り込み依頼を新しく作成しました。"
+          fi

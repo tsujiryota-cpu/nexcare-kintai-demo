@@ -10,8 +10,12 @@
 1. 仕様書を読む → `index.html` を編集
 2. 動作確認（シフト自動作成の制約を壊さない: 常勤176〜177h・公休9日・夜勤月6回まで・連日夜勤禁止・夜勤明け翌日休み・最大5連勤）
 3. **仕様書の該当箇所も更新**してから、日本語のコミットメッセージ「vNN: 変更内容」で push
-4. 応答の最後に「PCセッションで他の保存先への同期が必要」と辻さんに伝えること
-   （開発本体 NEXCAREjapan/nexcare-kintai・OneDrive・Googleドライブ・Claude Artifact への反映は辻さんのPCセッションが行う）
+4. 保存先への反映（**毎回は不要。下記のうち手動の分が発生したときだけ最後に一言添える**）
+   - 公開デモURL … main に push した時点で自動
+   - 開発本体 NEXCAREjapan/nexcare-kintai … main への push で自動（取り込み依頼のプルリクが立つ。設定＝`docs/自動同期の設定.md`）
+   - Claude Artifact … 辻さんの許可があればクラウドセッションから更新できる
+     （https://claude.ai/code/artifact/3f546759-30bd-4179-a9d8-9f08da34d4e5 ・`index.html` をそのまま再公開すればよい）
+   - **OneDrive・Googleドライブ … 自動化できない。** 区切りのいいときに辻さんのPCセッションで「クラウドの変更を同期して」
 
 ## 守ること
 - 日本語UI・専門用語を避けた文言。localStorageのキーは `nl_` プレフィックス
