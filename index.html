@@ -455,7 +455,7 @@
           勤務の傾向（おまかせ／少なめ／日勤中心／夜勤中心／<b>日勤のみ・夜勤のみ</b>＝該当しない枠に入れない／バランス／<b>勤務なし</b>＝その月は配置しない）は<b>職員名簿で設定したものがデフォルト</b>。職員欄のプルダウンで<b>この月だけ</b>一時的に変えられます（名簿は変わりません・紫色=上書き中）。<b>応援に行けるのは名簿の「兼務できる建物」に登録した建物だけ</b>です（職員欄に「兼務可: 医大」等を表示）。他の事業所の建物を登録した職員は、その事業所の自動作成でも候補になり、表の下部「🤝 他事業所からの兼務」に読み取り専用で表示されます。<b>兼務者は先に作成・保存した事業所の勤務が優先</b>されるため、シフトは保存してから次の事業所を作成してください。<b>「今月の上限h」欄</b>に時間を入れると、その月はその時間まででしか配置されません（この月だけの設定。月計に上限を表示し、手直しで超えると「超過」と警告が出ます）。夜勤は自動作成でなるべく連続しないように割り当てます。
           頭文字の対応：永1=永山1条・医大=医大前・永6=永山6条・末6=末広6条・末Ⅰ=末広3条Ⅰ・末Ⅱ=末広3条Ⅱ・末1=末広1条　<span class="lg-z"></span> 配置0人の日<br>
           <b>日</b>＝日勤（朝4h＋夕4h、間は休憩）　<b>通</b>＝通し（9:00〜18:00）　<b>夜</b>＝夜勤（常勤20:00〜翌5:00＝実働8h／非常勤22:00〜翌5:00＝実働6h。どちらも休憩1h・マスの下に時間帯を表示）<br>
-          <b>半</b>＝半日（4時間）。<b>マスの編集で「半日（午前）」「半日（午後）」のどちらかを選びます</b>。午前は朝の枠・午後は夕の枠（時刻は「⏰ 勤務時間」の設定どおり）で、マスの下に<b>午前／午後</b>と表示されます。自動作成が時間合わせで入れる半日は午前になるので、午後にしたい日はマスをタップして変えてください<br>
+          <b>半</b>＝半日（4時間）。<b>マスの編集で「半日（午前）」「半日（午後）」のどちらかを選びます</b>。<b>午前と午後をそろえて置けば「日中の配置ができていない」警告は出ません</b>（土日も同じ扱い）。午前は朝の枠・午後は夕の枠（時刻は「⏰ 勤務時間」の設定どおり）で、マスの下に<b>午前／午後</b>と表示されます。自動作成が時間合わせで入れる半日は午前になるので、午後にしたい日はマスをタップして変えてください<br>
           常勤は<b>公休9日</b>。月の勤務時間は<b>基準以上（31日の月176h・30日の月168h）〜法定上限以内（31日の月177h・30日の月171h）</b>に自動で収めます。不足・超過は月計が赤くなり警告が出ます。<br>
           <b>世話人か生活支援員のどちらか</b>が毎日1名以上必要。夜間支援従事者でない職員が夜勤に入ると<b>「夜間支援従事者（自動兼務）」</b>として扱われ、様式出力・集計もその職種で計上されます。</div>
         <div class="legend" id="pubState" style="margin-bottom:8px"></div>
@@ -1967,23 +1967,27 @@ function renderShWarn(mi){const el=document.getElementById("shWarn");if(!el)retu
       +"<br><span style='font-weight:400'>毎日・各建物に1名の夜勤が必要です。夜勤パートの勤務可能日の提出、または応援・増員を検討してください。</span>")}
   {const dayGapMsgs=[];
    officeUnits(curShOffice).forEach(u=>{const gaps=[];
+     /* その建物・その日の「朝」「夕」が誰かに埋まっているか。
+        日勤の朝夕分割、半日（午前=朝／午後=夕）、他事業所からの応援もまとめて見る */
+     const covers=(d,part)=>getStaff().some(s=>{const a=B[s.id]||oarr(s);const c=a&&a[d-1];
+       if(!c)return false;
+       if(c.k==="半日")return c.w===u.id&&halfOf(c)===(part==="m"?"am":"pm");
+       if(c.k!=="日勤")return false;const sg=segOf(c);
+       return part==="m"?(sg.mh>0&&sg.mw===u.id):(sg.eh>0&&sg.ew===u.id)});
      for(let d=1;d<=mi.days;d++){const w=dow(mi,d);
+       const hasM=covers(d,"m"),heE=covers(d,"e");
+       const lack=(!hasM&&!heE)?"":(!hasM?"(朝)":"(夕)"); /* 片方だけ埋まっている時は足りない側を出す */
        if(w===0||w===6){
-         if(!staffL.some(s=>B[s.id]&&B[s.id][d-1]&&B[s.id][d-1].k==="通し"&&B[s.id][d-1].w===u.id)
-           &&!othersHas(u,d,"通し"))gaps.push(mi.m+"/"+d)}
-       else{ /* 平日=朝と夕の両方がカバーされているか（朝夕分割・場所違いにも対応） */
-         const has=part=>getStaff().some(s=>{const a=B[s.id]||oarr(s);const c=a&&a[d-1];
-           if(!c)return false;
-           /* 半日（午前）は朝、半日（午後）は夕をカバーしているものとして数える */
-           if(c.k==="半日")return c.w===u.id&&halfOf(c)===(part==="m"?"am":"pm");
-           if(c.k!=="日勤")return false;const sg=segOf(c);
-           return part==="m"?(sg.mh>0&&sg.mw===u.id):(sg.eh>0&&sg.ew===u.id)});
-         const hm2=has("m"),he=has("e");
-         if(!hm2||!he)gaps.push(mi.m+"/"+d+((!hm2&&!he)?"":(!hm2?"(朝)":"(夕)")))}}
+         /* 土日は通しが基本。ただし朝と夕の両方が埋まっていれば（半日の午前＋午後など）足りているとみなす */
+         const tooshi=staffL.some(s=>B[s.id]&&B[s.id][d-1]&&B[s.id][d-1].k==="通し"&&B[s.id][d-1].w===u.id)
+           ||othersHas(u,d,"通し");
+         if(!tooshi&&!(hasM&&heE))gaps.push(mi.m+"/"+d+lack)}
+       else{ /* 平日=朝と夕の両方がカバーされているか */
+         if(!hasM||!heE)gaps.push(mi.m+"/"+d+lack)}}
      if(gaps.length){
        const shown=gaps.slice(0,8).join("、")+(gaps.length>8?" ほか"+(gaps.length-8)+"日":"");
        dayGapMsgs.push("<b>"+u.name+"</b>（"+gaps.length+"日）: "+shown)}});
-   if(dayGapMsgs.length)msgs.push("☀ <b>日中の配置（平日=日勤・土日=通し）ができていない建物・日</b>があります<br>"+dayGapMsgs.join("<br>"))}
+   if(dayGapMsgs.length)msgs.push("☀ <b>日中の配置ができていない建物・日</b>があります（平日=朝と夕の両方／土日=通し、または朝と夕の両方）<br>"+dayGapMsgs.join("<br>"))}
   {const arrOf=s=>(B[s.id]||store.get(mshiftKey(s.id,mi.ym),null));const gaps=[];
    for(let d=1;d<=mi.days;d++){
      if(careCountAt(curShOffice,d,arrOf)===0)gaps.push(mi.m+"/"+d)}
@@ -2042,7 +2046,7 @@ function saveUH(){const uid=document.getElementById("uhUnit").value;if(!uid)retu
 function checkShift(){const mi=monthInfo(admOff);
   const n=renderShWarn(mi);
   const el=document.getElementById("shWarn");
-  if(n===0){el.innerHTML='<div class="pok">✔ 問題は見つかりませんでした<br><span style="font-weight:400">確認した項目: 🌙夜勤（毎日・各建物）／☀日中の配置（平日=朝・夕の両方、土日=通し）／👤世話人・生活支援員／⏱常勤の基準時間と法定上限（31日月176〜177h・30日月168〜171h）／⛔今月の上限時間／🔁連続勤務</span></div>';
+  if(n===0){el.innerHTML='<div class="pok">✔ 問題は見つかりませんでした<br><span style="font-weight:400">確認した項目: 🌙夜勤（毎日・各建物）／☀日中の配置（平日=朝と夕の両方、土日=通しか朝夕の両方。半日の午前＋午後でも足りているとみなします）／👤世話人・生活支援員／⏱常勤の基準時間と法定上限（31日月176〜177h・30日月168〜171h）／⛔今月の上限時間／🔁連続勤務</span></div>';
     toast("チェックしました：問題ありません")}
   else{toast("⚠ 注意が"+n+"件あります。表の上の警告を確認してください")}
   el.scrollIntoView({behavior:"smooth",block:"nearest"})}
