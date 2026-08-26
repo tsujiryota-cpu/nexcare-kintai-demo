@@ -247,6 +247,7 @@
 
   .chipgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
   .chip{background:var(--card);border:1px solid var(--line2);color:var(--ink);border-radius:10px;padding:11px 0;font-size:13.5px;font-weight:700;cursor:pointer;width:auto}
+  .chip.sm{font-size:11.5px;letter-spacing:-.5px}
   .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
   @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.on{color:#08201D}}
   :root[data-theme="dark"] .chip.on{color:#08201D}
@@ -454,6 +455,7 @@
           勤務の傾向（おまかせ／少なめ／日勤中心／夜勤中心／<b>日勤のみ・夜勤のみ</b>＝該当しない枠に入れない／バランス／<b>勤務なし</b>＝その月は配置しない）は<b>職員名簿で設定したものがデフォルト</b>。職員欄のプルダウンで<b>この月だけ</b>一時的に変えられます（名簿は変わりません・紫色=上書き中）。<b>応援に行けるのは名簿の「兼務できる建物」に登録した建物だけ</b>です（職員欄に「兼務可: 医大」等を表示）。他の事業所の建物を登録した職員は、その事業所の自動作成でも候補になり、表の下部「🤝 他事業所からの兼務」に読み取り専用で表示されます。<b>兼務者は先に作成・保存した事業所の勤務が優先</b>されるため、シフトは保存してから次の事業所を作成してください。<b>「今月の上限h」欄</b>に時間を入れると、その月はその時間まででしか配置されません（この月だけの設定。月計に上限を表示し、手直しで超えると「超過」と警告が出ます）。夜勤は自動作成でなるべく連続しないように割り当てます。
           頭文字の対応：永1=永山1条・医大=医大前・永6=永山6条・末6=末広6条・末Ⅰ=末広3条Ⅰ・末Ⅱ=末広3条Ⅱ・末1=末広1条　<span class="lg-z"></span> 配置0人の日<br>
           <b>日</b>＝日勤（朝4h＋夕4h、間は休憩）　<b>通</b>＝通し（9:00〜18:00）　<b>夜</b>＝夜勤（常勤20:00〜翌5:00＝実働8h／非常勤22:00〜翌5:00＝実働6h。どちらも休憩1h・マスの下に時間帯を表示）<br>
+          <b>半</b>＝半日（4時間）。<b>マスの編集で「半日（午前）」「半日（午後）」のどちらかを選びます</b>。午前は朝の枠・午後は夕の枠（時刻は「⏰ 勤務時間」の設定どおり）で、マスの下に<b>午前／午後</b>と表示されます。自動作成が時間合わせで入れる半日は午前になるので、午後にしたい日はマスをタップして変えてください<br>
           常勤は<b>公休9日</b>。月の勤務時間は<b>基準以上（31日の月176h・30日の月168h）〜法定上限以内（31日の月177h・30日の月171h）</b>に自動で収めます。不足・超過は月計が赤くなり警告が出ます。<br>
           <b>世話人か生活支援員のどちらか</b>が毎日1名以上必要。夜間支援従事者でない職員が夜勤に入ると<b>「夜間支援従事者（自動兼務）」</b>として扱われ、様式出力・集計もその職種で計上されます。</div>
         <div class="legend" id="pubState" style="margin-bottom:8px"></div>
@@ -649,7 +651,7 @@
   <div class="sheet">
     <h3 id="cellTitle">勤務の入力</h3>
     <p class="sub" id="cellSub"></p>
-    <div class="field"><label>勤務区分</label><div class="chipgrid" id="cellChips"></div>
+    <div class="field"><label>勤務区分（半日は午前・午後を選んでください）</label><div class="chipgrid" id="cellChips"></div>
       <p class="muted" id="cellTimeHint" style="font-size:12px;margin:2px 0 0;min-height:18px"></p></div>
     <div class="field" id="cellUnitWrap"><label>勤務先（この行の建物に固定）</label><select id="cellUnit"></select></div>
     <div class="field"><label>備考（このマスに気づいてほしいこと）</label><textarea id="cellNote" rows="2" placeholder="例: 受診同行あり／担当者会議 15:00〜 など"></textarea></div>
@@ -797,9 +799,20 @@ function rolesOf(s){return s.roles&&s.roles.length?s.roles:(s.role?[s.role]:["�
 function hasRole(s,r){return rolesOf(s).indexOf(r)>=0}
 function roleStr(s){return rolesOf(s).join("・")}
 function primaryRole(s){return rolesOf(s)[0]}
-const KINDS=["未定","日勤","通し","夜勤","半日","休","有休"];
+/* セル編集の選択肢。半日は「午前」「午後」を分けて選ぶ（c.half="am"|"pm" に保存）。
+   区分そのもの(c.k)は従来どおり「半日」なので、これまでのデータもそのまま読める（half未設定=午前扱い） */
+const CHIPS=[{v:"未定",k:"未定"},{v:"日勤",k:"日勤"},{v:"通し",k:"通し"},{v:"夜勤",k:"夜勤"},
+  {v:"半日am",k:"半日",half:"am",label:"半日（午前）",sm:true},
+  {v:"半日pm",k:"半日",half:"pm",label:"半日（午後）",sm:true},
+  {v:"休",k:"休"},{v:"有休",k:"有休"}];
+function chipOf(v){return CHIPS.find(x=>x.v===v)||CHIPS[0]}
+function halfOf(c){return (c&&c.k==="半日"&&c.half==="pm")?"pm":"am"} /* 既存データは午前として扱う */
+function halfLabel(c){return halfOf(c)==="pm"?"午後":"午前"}
+function chipVal(c){if(!c)return "未定";return c.k==="半日"?("半日"+halfOf(c)):c.k}
 const KIND_H={"未定":0,"日勤":8,"通し":8,"夜勤":7,"半日":4,"休":0,"有休":0};
 const KIND_AB={"未定":"","日勤":"日","通し":"通","夜勤":"夜","半日":"半","休":"休","有休":"有"};
+/* ヒント行が置けない画面用の略字。半日は 半前／半後 で午前・午後を区別する */
+function kindAB(c){if(!c)return "";return c.k==="半日"?("半"+(halfOf(c)==="pm"?"後":"前")):(KIND_AB[c.k]||"")}
 const KIND_TIME={"日勤":"6:00-10:00／16:00-20:00（間は休憩）","通し":"9:00-18:00","半日":"4時間"};
 /* 建物×曜日ごとの勤務時間帯（管理者権限が設定。開始時刻のみ設定し、長さは朝4h・夕4h・通し9時間枠で固定）
    保存キー nl_unithours_{unitId} = {曜日0(日)〜6(土): {m:朝開始(分), e:夕開始(分), t:通し開始(分)}} */
@@ -815,7 +828,8 @@ function segOf(c){if(!c||c.k!=="日勤")return null;const sg=c.seg||{};
 function cellH(c,s){if(!c||!WORKING(c.k))return 0;const sg=segOf(c);return sg?(sg.mh+sg.eh):kindH(c.k,s)}
 /* マスの複製: 区分・勤務先だけでなく朝夕分割(seg)・備考・色も引き継ぐ（作業バッファへの読み込みで消えないように） */
 function copyCell(c,s){if(!c)return{k:"未定",w:s?homeUnitOf(s):""};
-  const o={k:c.k,w:c.w};if(c.seg)o.seg=Object.assign({},c.seg);if(c.note)o.note=c.note;if(c.col)o.col=c.col;return o}
+  const o={k:c.k,w:c.w};if(c.seg)o.seg=Object.assign({},c.seg);if(c.half)o.half=c.half;
+  if(c.note)o.note=c.note;if(c.col)o.col=c.col;return o}
 function partH(c,s,uid){if(!c||!WORKING(c.k))return 0;const sg=segOf(c);
   if(!sg)return c.w===uid?kindH(c.k,s):0;
   return (sg.mw===uid?sg.mh:0)+(sg.ew===uid?sg.eh:0)}
@@ -826,10 +840,14 @@ function involves(c,uid){if(!c||!WORKING(c.k))return false;const sg=segOf(c);
 function cellUnits(c){if(!c||!WORKING(c.k))return[];const sg=segOf(c);
   if(!sg)return c.w?[c.w]:[];
   return [...new Set([sg.mh>0?sg.mw:null,sg.eh>0?sg.ew:null].filter(Boolean))]}
-function kindT(k,s,uid,wd){if(k==="夜勤")return isFulltime(s)?"20:00-翌5:00（休憩1h・実働8h）":"22:00-翌5:00（休憩1h・実働6h）";
+function kindT(k,s,uid,wd,half){if(k==="夜勤")return isFulltime(s)?"20:00-翌5:00（休憩1h・実働8h）":"22:00-翌5:00（休憩1h・実働6h）";
   if(uid&&wd!==undefined&&wd!==null){const b=unitBands(uid,wd);
     if(k==="日勤")return hm(b.m)+"-"+hm(b.m+240)+"／"+hm(b.e)+"-"+hm(b.e+240)+"（間は休憩）";
-    if(k==="通し")return hm(b.t)+"-"+hm(b.t+540)}
+    if(k==="通し")return hm(b.t)+"-"+hm(b.t+540);
+    /* 半日は建物×曜日の朝枠（午前）か夕枠（午後）の4時間 */
+    if(k==="半日"){const st=(half==="pm")?b.e:b.m;
+      return hm(st)+"-"+hm(st+240)+"（"+(half==="pm"?"午後":"午前")+"の4時間）"}}
+  if(k==="半日")return (half==="pm"?"午後":"午前")+"の4時間";
   return KIND_TIME[k]||""}
 const EMPLOY_AB={"常勤専従":"常勤専従","常勤兼務":"常勤兼務","非常勤専従":"非常勤専従","非常勤兼務":"非常勤兼務"};
 const WORKING=k=>KIND_H[k]>0;
@@ -1001,6 +1019,7 @@ function pstate(){const a=getPunches();const has=t=>a.some(x=>x.type===t);
   if(!has("出勤"))return "none"; if(has("退勤"))return "done";
   const bs=a.filter(x=>x.type==="休憩開始").length,be=a.filter(x=>x.type==="休憩終了").length;
   return bs>be?"break":"work"}
+function planLabel(c){return c?(c.k==="半日"?("半日（"+halfLabel(c)+"）"):c.k):""}
 function todayPlan(){const d=new Date();const ym=d.getFullYear()+"-"+pad(d.getMonth()+1);
   if(!isPub(me.office,ym))return null; /* 公開前のシフトは職員には存在しない扱い */
   const a=store.get(mshiftKey(me.id,ym),null);if(!a)return null;
@@ -1019,16 +1038,17 @@ function forcePunch(){
   const a=getPunches();a.push({type:"出勤",time:nowHM(),edited:false,comment:"",off:true,place:punchPlace()});setPunches(a);
   resetPunchPlace();renderPunch(pDate);toast("シフト外出勤として記録しました。管理者にも連絡してください")}
 /* 予定との食い違いチェック（場所・開始時刻±60分。日勤は朝6時/夕16時の両方を許容） */
-function kindStarts(k,s,uid,wd){const b=bandsFor(uid,wd);
+function kindStarts(k,s,uid,wd,half){const b=bandsFor(uid,wd);
   if(k==="日勤")return[b.m,b.e];
   if(k==="通し")return[b.t];
+  if(k==="半日")return[(half==="pm")?b.e:b.m]; /* 午前=朝枠・午後=夕枠 */
   if(k==="夜勤")return[isFulltime(s)?1200:1320];
   return null}
 function punchMismatch(p,place,nowMin){const rs=[];
   if(nowMin===undefined){const t=new Date();nowMin=t.getHours()*60+t.getMinutes()}
   if(p.w&&place&&place!==p.w)
     rs.push("📍 場所：予定「"+unitName(p.w)+"」→ 今回「"+unitName(place)+"」");
-  const st=kindStarts(p.k,me,p.w,new Date().getDay());
+  const st=kindStarts(p.k,me,p.w,new Date().getDay(),p.half);
   if(st){const dev=Math.min.apply(null,st.map(x=>Math.abs(nowMin-x)));
     if(dev>60)rs.push("🕐 時間：予定の開始は "+st.map(x=>hm(x)).join(" または ")+" ごろ → 現在 "+hm(nowMin))}
   return rs}
@@ -1050,14 +1070,14 @@ function punch(type){
     if(p&&WORKING(p.k)){
       /* 出勤打刻はシフト開始の15分前から（早すぎる打刻はブロック） */
       const t15=new Date();const nowMin15=t15.getHours()*60+t15.getMinutes();
-      const sts15=kindStarts(p.k,me,p.w,t15.getDay());
+      const sts15=kindStarts(p.k,me,p.w,t15.getDay(),p.half);
       if(sts15&&sts15.length){const first=Math.min.apply(null,sts15);
         if(nowMin15<first-15){
           punchErr("⚠ 出勤打刻は開始15分前（"+hm(first-15)+"）からできます（今日の予定の開始は "+hm(first)+"）。",false);return}}
       const rs=punchMismatch(p,punchPlace());
       if(rs.length){pendingPlace=punchPlace();
         document.getElementById("cnfBody").innerHTML=
-          "<b>今日の予定：</b>"+p.k+(kindT(p.k,me,p.w,new Date().getDay())?"（"+kindT(p.k,me,p.w,new Date().getDay())+"）":"")+" ／ 勤務先："+unitName(p.w)
+          "<b>今日の予定：</b>"+planLabel(p)+(kindT(p.k,me,p.w,new Date().getDay(),p.half)?"（"+kindT(p.k,me,p.w,new Date().getDay(),p.half)+"）":"")+" ／ 勤務先："+unitName(p.w)
           +"<br><br>"+rs.join("<br>");
         document.getElementById("cnfOv").classList.remove("hide");return}}
     document.getElementById("punchErr").classList.add("hide");
@@ -1094,8 +1114,9 @@ function renderPunch(keep){
   tick();
   const p=todayPlan();
   document.getElementById("planTxt").innerHTML=!p?"今日の予定：シフト未作成"
-    :WORKING(p.k)?`今日の予定：<b>${p.k}</b>${kindT(p.k,me,p.w,new Date().getDay())?" "+kindT(p.k,me,p.w,new Date().getDay()):""}<br>勤務先：${unitName(p.w)}${unitOffice(p.w)!==me.office?"・応援":""}`
+    :WORKING(p.k)?`今日の予定：<b>${planLabel(p)}</b>${kindT(p.k,me,p.w,new Date().getDay(),p.half)?" "+kindT(p.k,me,p.w,new Date().getDay(),p.half):""}<br>勤務先：${unitName(p.w)}${unitOffice(p.w)!==me.office?"・応援":""}`
     :`今日の予定：<b>${p.k}</b>`;
+  /* 予定の名前。半日は「半日（午前）」のように出す */
   const st=pstate();const map={none:["未出勤","st-none"],work:["勤務中","st-work"],break:["休憩中","st-break"],done:["退勤済み","st-done"]};
   const pill=document.getElementById("statusPill");pill.className="status "+map[st][1];
   document.getElementById("statusTxt").textContent=map[st][0];
@@ -1121,8 +1142,10 @@ function renderPunch(keep){
   renderMyBook()}
 
 /* ---- 今月の出勤簿（打刻から自動集計・様式「出勤簿」対応） ---- */
-function kindEnds(k,uid,wd){const b=bandsFor(uid,wd);
-  if(k==="日勤")return b.e+240;if(k==="通し")return b.t+540;if(k==="夜勤")return 1740;return null}
+function kindEnds(k,uid,wd,half){const b=bandsFor(uid,wd);
+  if(k==="日勤")return b.e+240;if(k==="通し")return b.t+540;
+  if(k==="半日")return ((half==="pm")?b.e:b.m)+240;
+  if(k==="夜勤")return 1740;return null}
 function dayBook(sid,mi,d){
   const st=getStaff().find(x=>x.id===sid)||{};
   const planArr=isPub(st.office,mi.ym)?store.get(mshiftKey(sid,mi.ym),null):null;
@@ -1151,11 +1174,11 @@ function dayBook(sid,mi,d){
   /* 遅刻・早退（予定勤務の日のみ判定） */
   let late=0,early=0;
   if(kind&&WORKING(kind)){
-    const sts=kindStarts?kindStarts(kind,st,cell?cell.w:null,dow(mi,d)):null;
+    const sts=kindStarts?kindStarts(kind,st,cell?cell.w:null,dow(mi,d),cell?cell.half:null):null;
     if(sts&&sts.length){
       let best=sts[0];sts.forEach(x=>{if(Math.abs(iN-x)<Math.abs(iN-best))best=x});
       late=Math.max(0,iN-best)}
-    const en=kindEnds(kind,cell?cell.w:null,dow(mi,d));
+    const en=kindEnds(kind,cell?cell.w:null,dow(mi,d),cell?cell.half:null);
     if(en!==null&&o2!==null)early=Math.max(0,en-o2)}
   return {in:iN,out:oN,br:br,work:Math.round(work/6)/10,night:Math.round(night/6)/10,
     place:place,off:off,partial:oN===null,late:late,early:early,status:null}}
@@ -1481,7 +1504,7 @@ function buildGrid(oid,mi,buf,editable){
       if(elsewhere){
         const sgx=segOf(c);
         const dest=sgx?[...new Set([sgx.mh>0?sgx.mw:null,sgx.eh>0?sgx.ew:null].filter(Boolean))].map(unitShort).join("/"):unitShort(c.w);
-        cells+=`<td class="cell lk" title="この日は${unitName(c.w)}などで${c.k}。ここから変えるには、先にそちらの行で休にしてください">${km}<span class="lkx">${dest}</span></td>`}
+        cells+=`<td class="cell lk" title="この日は${unitName(c.w)}などで${planLabel(c)}。ここから変えるには、先にそちらの行で休にしてください">${km}<span class="lkx">${dest}</span></td>`}
       else{
         const dispSeg=(typeof document!=="undefined"&&document.getElementById("shDisp")&&document.getElementById("shDisp").value==="seg");
         let ab,splitHint="";
@@ -1498,6 +1521,9 @@ function buildGrid(oid,mi,buf,editable){
           else if(c.k==="夜勤"){
             splitHint=isFulltime(s)?"20-翌5":"22-翌5"; /* 夜勤マスに時間帯を表記 */
             ab=dispSeg?`<span style="font-size:8px;line-height:1.15;display:inline-block">夜<br>${kindH("夜勤",s)}h</span>`:(KIND_AB[c.k]||"")}
+          else if(c.k==="半日"){
+            splitHint=halfLabel(c); /* 半日は午前・午後をマスの下に表記 */
+            ab=dispSeg?`<span style="font-size:10.5px;font-weight:700">${halfOf(c)==="pm"?"夕4":"朝4"}</span>`:(KIND_AB[c.k]||"")}
           else ab=dispSeg&&c.k==="通し"?'<span style="font-size:8px;line-height:1.15;display:inline-block">通し<br>8h</span>':(KIND_AB[c.k]||"")}
         else ab=isMain?(KIND_AB[c.k]||"・"):"・";
         const cls=here?(c.k==="夜勤"?"cn":"cw"):((isMain&&(c.k==="休"||c.k==="有休"))?"co":"cu");
@@ -1506,7 +1532,7 @@ function buildGrid(oid,mi,buf,editable){
         const ntc=(showNote&&c.note)?'<span class="ntc" aria-hidden="true"></span>':'';
         const sgT=(here&&c.k==="日勤"&&c.seg)?(()=>{const g=segOf(c);
           return "朝"+g.mh+"h@"+unitShort(g.mw)+"／夕"+g.eh+"h@"+unitShort(g.ew)})():null;
-        const ttl=[here?(c.k+(kindT(c.k,s,u.id,wd)?" "+kindT(c.k,s,u.id,wd):"")):(isMain&&!WORKING(c.k)?c.k:""),sgT,(showNote&&c.note)?("備考:"+c.note):null,kb[d]?("希望休:"+kb[d]):null,avm[d]?("提出:"+avm[d]):null,mw[d]?((mw[d].type==="off"?"休み条件:":"出勤条件:")+mw[d].reason):null].filter(Boolean).join(" / ");
+        const ttl=[here?(planLabel(c)+(kindT(c.k,s,u.id,wd,c.half)?" "+kindT(c.k,s,u.id,wd,c.half):"")):(isMain&&!WORKING(c.k)?c.k:""),sgT,(showNote&&c.note)?("備考:"+c.note):null,kb[d]?("希望休:"+kb[d]):null,avm[d]?("提出:"+avm[d]):null,mw[d]?((mw[d].type==="off"?"休み条件:":"出勤条件:")+mw[d].reason):null].filter(Boolean).join(" / ");
         cells+=`<td class="cell ${cls}${mk}${tint}${canEdit?'':' ro'}" title="${hesc(ttl)}" ${canEdit?`onclick="openCell('${s.id}',${d},'${u.id}')"`:''}>${ab||'・'}${km}${ntc}${splitHint?`<span class="hm">${splitHint}</span>`:''}</td>`}}
     const cap=shCapOf(s.id,mi.ym)||(s.capDef>0?s.capDef:0);
     const hasOv=Object.prototype.hasOwnProperty.call(ovmAll,s.id);
@@ -1595,7 +1621,7 @@ function buildUnitGrid(oid,mi){
   getStaff().forEach(s=>{const a=store.get(mshiftKey(s.id,mi.ym),null);if(!a)return;
     for(let d=1;d<=mi.days;d++){const c=a[d-1];if(!c||!WORKING(c.k))continue;
       cellUnits(c).forEach(w=>{if(!cellMap[w])return;any=true; /* 朝夕を別の建物にした日は両方に出す */
-        cellMap[w][d-1].push({name:s.name.split(/\s/)[0],ab:KIND_AB[c.k],night:c.k==="夜勤",help:s.office!==oid})})}});
+        cellMap[w][d-1].push({name:s.name.split(/\s/)[0],ab:kindAB(c),night:c.k==="夜勤",help:s.office!==oid})})}});
   if(!any)return null;
   let h='<table><thead><tr><th class="nm">日付</th>';
   units.forEach(u=>h+=`<th style="padding:4px 8px">${u.name}</th>`);
@@ -1617,7 +1643,7 @@ function renderSched(){const mi=monthInfo(schOff);
   if(schViewMode==="unit"){
     const oid=document.getElementById("unitOffice").value||me.office;
     const g=buildUnitGrid(oid,mi);
-    el.innerHTML=g?`<div class="sgrid">${g}</div><div class="legend">建物（拠点）ごとに、その日<b>誰が勤務するか</b>を表示します。<span class="kk kkd">日</span>＝日勤系　<span class="kk kkn">夜</span>＝夜勤　↗＝他事業所からの応援　<span class="lg-z"></span>＝配置0人の日</div>`
+    el.innerHTML=g?`<div class="sgrid">${g}</div><div class="legend">建物（拠点）ごとに、その日<b>誰が勤務するか</b>を表示します。<span class="kk kkd">日</span>＝日勤系　<span class="kk kkn">夜</span>＝夜勤　<span class="kk kkd">半前</span>＝半日の午前　<span class="kk kkd">半後</span>＝半日の午後　↗＝他事業所からの応援　<span class="lg-z"></span>＝配置0人の日</div>`
       :'<div class="empty" style="border:1px solid var(--line);border-radius:14px">この事業所の、この月のシフトはまだ作成されていません。</div>';
     return}
   if(schViewMode==="all"){
@@ -1645,8 +1671,8 @@ function renderSched(){const mi=monthInfo(schOff);
     if(isToday)stl.push("border:2.5px solid var(--accent)");
     const noteTint=stl.length?` style="${stl.join(";")}"`:'';
     html+=`<div class="sch-day ${rest?'rest':''}"${noteTint}><div class="dt"><div class="dd ${w===0?'sun':w===6?'sat':''}">${i}</div><div class="dw">${WD[w]}</div></div>
-      <div style="flex:1"><div class="sh">${kind}${isToday?' <span class="badge-e" style="color:#fff;background:var(--accent)">今日</span>':''}</div>
-      ${WORKING(kind)?`<div class="tt">${kindT(kind,me,cell.w,dow(mi,i))?kindT(kind,me,cell.w,dow(mi,i))+" ・ ":""}勤務先：${unitName(cell.w)}</div>`:''}
+      <div style="flex:1"><div class="sh">${planLabel(cell)||kind}${isToday?' <span class="badge-e" style="color:#fff;background:var(--accent)">今日</span>':''}</div>
+      ${WORKING(kind)?`<div class="tt">${kindT(kind,me,cell.w,dow(mi,i),cell.half)?kindT(kind,me,cell.w,dow(mi,i),cell.half)+" ・ ":""}勤務先：${unitName(cell.w)}</div>`:''}
       ${cell.note?`<div style="font-size:13px;color:var(--ink);font-weight:700;margin-top:2px">📝 ${hesc(cell.note)}</div>`:''}
       ${cross?`<div class="hlp">↗ 応援（${officeName(unitOffice(cell.w))}・${unitName(cell.w)}）</div>`:other?`<div class="hlp">↗ ${unitName(cell.w)}へ</div>`:''}
       ${mw[i]?`<div class="hlp" style="color:var(--admin)">📌 ${mw[i].type==="off"?"休み条件：":""}${hesc(mw[i].reason)}</div>`:''}
@@ -1947,7 +1973,10 @@ function renderShWarn(mi){const el=document.getElementById("shWarn");if(!el)retu
            &&!othersHas(u,d,"通し"))gaps.push(mi.m+"/"+d)}
        else{ /* 平日=朝と夕の両方がカバーされているか（朝夕分割・場所違いにも対応） */
          const has=part=>getStaff().some(s=>{const a=B[s.id]||oarr(s);const c=a&&a[d-1];
-           if(!c||c.k!=="日勤")return false;const sg=segOf(c);
+           if(!c)return false;
+           /* 半日（午前）は朝、半日（午後）は夕をカバーしているものとして数える */
+           if(c.k==="半日")return c.w===u.id&&halfOf(c)===(part==="m"?"am":"pm");
+           if(c.k!=="日勤")return false;const sg=segOf(c);
            return part==="m"?(sg.mh>0&&sg.mw===u.id):(sg.eh>0&&sg.ew===u.id)});
          const hm2=has("m"),he=has("e");
          if(!hm2||!he)gaps.push(mi.m+"/"+d+((!hm2&&!he)?"":(!hm2?"(朝)":"(夕)")))}}
@@ -2024,7 +2053,7 @@ function openCell(sid,day,uid){
   const mi=monthInfo(admOff);const s=getStaff().find(x=>x.id===sid);
   const c=B[sid][day-1];
   cellUid=uid||c.w||s.unit;
-  cellSel=(WORKING(c.k)&&c.w===cellUid)?c.k:(c.k==="未定"?"日勤":(WORKING(c.k)?"日勤":c.k));
+  cellSel=(WORKING(c.k)&&c.w===cellUid)?chipVal(c):(c.k==="未定"?"日勤":(WORKING(c.k)?"日勤":c.k));
   document.getElementById("cellTitle").textContent=s.name+"（"+unitName(cellUid)+"の行）";
   const kb=kibSet(sid,mi)[day];const mw=mwMap(sid,mi)[day];const avr=availMap(sid,mi)[day];
   document.getElementById("cellSub").textContent=mi.m+"月"+day+"日（"+WD[dow(mi,day)]+"）"
@@ -2052,12 +2081,12 @@ function openCell(sid,day,uid){
   document.getElementById("cellNote").value=c.note||"";
   document.getElementById("cellCol").value=c.col||"";
   document.getElementById("cellOv").classList.remove("hide")}
-function renderChips(){document.getElementById("cellChips").innerHTML=KINDS.map(k=>
-  `<button class="chip ${k===cellSel?'on':''}" onclick="cellSel='${k}';renderChips();
-    document.getElementById('cellUnitWrap').style.opacity=(${KIND_H[k]>0}?'1':'0.4')">${k}</button>`).join("");
+function renderChips(){document.getElementById("cellChips").innerHTML=CHIPS.map(x=>
+  `<button class="chip${x.sm?' sm':''} ${x.v===cellSel?'on':''}" onclick="cellSel='${x.v}';renderChips();
+    document.getElementById('cellUnitWrap').style.opacity=(${KIND_H[x.k]>0}?'1':'0.4')">${x.label||x.v}</button>`).join("");
   const sw=document.getElementById("segWrap");if(sw)sw.classList.toggle("hide",cellSel!=="日勤");
-  const cs=getStaff().find(x=>x.id===cellSid);
-  const ct=cs?kindT(cellSel,cs,cellUid,dow(monthInfo(admOff),cellDay)):KIND_TIME[cellSel];
+  const cs=getStaff().find(x=>x.id===cellSid);const ch=chipOf(cellSel);
+  const ct=cs?kindT(ch.k,cs,cellUid,dow(monthInfo(admOff),cellDay),ch.half):KIND_TIME[ch.k];
   document.getElementById("cellTimeHint").textContent=ct?("勤務時間："+ct):""}
 /* 連続入力（複製）: セルの内容をコピーして、タップした日に貼り付けていく */
 let paintMode=null;
@@ -2065,16 +2094,17 @@ function startPaint(){
   const sid0=cellSid,day0=cellDay;
   applyCell(); /* まず今のマスに適用 */
   const src=B[sid0][day0-1];
-  paintMode={k:src.k,seg:src.seg?Object.assign({},src.seg):null};
+  paintMode={k:src.k,half:src.half||null,seg:src.seg?Object.assign({},src.seg):null};
   document.getElementById("paintLabel").textContent=
-    "連続入力中: "+cellSel+"（タップした行の建物に入ります）";
+    "連続入力中: "+(chipOf(cellSel).label||cellSel)+"（タップした行の建物に入ります）";
   document.getElementById("paintBar").classList.remove("hide");
-  toast("マスをタップすると「"+cellSel+"」が入ります。終わったら右の「終了」を押してください")}
+  toast("マスをタップすると「"+(chipOf(cellSel).label||cellSel)+"」が入ります。終わったら右の「終了」を押してください")}
 function endPaint(){paintMode=null;document.getElementById("paintBar").classList.add("hide")}
 function paintCell(sid,day,uid){
   const c=B[sid][day-1];const st=getStaff().find(x=>x.id===sid)||{};
-  delete c.seg;
+  delete c.seg;delete c.half;
   c.k=paintMode.k;c.w=WORKING(paintMode.k)?uid:st.unit;
+  if(paintMode.half)c.half=paintMode.half;
   if(paintMode.seg){c.seg=Object.assign({},paintMode.seg);c.w=paintMode.seg.mh>0?paintMode.seg.mw:paintMode.seg.ew}
   shDirty=true;
   const box=document.getElementById("shiftGrid");
@@ -2083,7 +2113,7 @@ function paintCell(sid,day,uid){
   if(box){const nb=document.getElementById("shiftGrid");nb.scrollLeft=sl;nb.scrollTop=sp}}
 function applyCell(){const c=B[cellSid][cellDay-1];
   const st=getStaff().find(x=>x.id===cellSid)||{};
-  delete c.seg;
+  delete c.seg;delete c.half;
   if(cellSel==="日勤"){
     const mh=parseFloat(document.getElementById("segMh").value)||0;
     const eh=parseFloat(document.getElementById("segEh").value)||0;
@@ -2093,7 +2123,8 @@ function applyCell(){const c=B[cellSid][cellDay-1];
     c.k="日勤";
     if(mh===4&&eh===4&&mw===cellUid&&ew===cellUid){c.w=cellUid}
     else{c.w=mh>0?mw:ew;c.seg={mh:mh,eh:eh,mw:mw,ew:ew}}}
-  else{c.k=cellSel;c.w=WORKING(cellSel)?cellUid:st.unit} /* 勤務=行の建物、休み系=本務に戻す */
+  else{const ch=chipOf(cellSel);c.k=ch.k;c.w=WORKING(ch.k)?cellUid:st.unit; /* 勤務=行の建物、休み系=本務に戻す */
+    if(ch.half)c.half=ch.half;else delete c.half}
   const note=document.getElementById("cellNote").value.trim();
   const col=document.getElementById("cellCol").value;
   if(note)c.note=note;else delete c.note;
@@ -2111,9 +2142,9 @@ function saveShift(silent){const mi=monthInfo(admOff);
       const st=getStaff().find(x=>x.id===sid);
       for(let d=1;d<=mi.days;d++){
         const o=oldA[d-1]||{k:"休"};const n=B[sid][d-1]||{k:"休"};
-        const sig=c=>c.k+"|"+(c.w||"")+"|"+(c.seg?JSON.stringify(c.seg):"")+"|"+(c.note||"");
+        const sig=c=>c.k+"|"+(c.w||"")+"|"+(c.half||"")+"|"+(c.seg?JSON.stringify(c.seg):"")+"|"+(c.note||"");
         if(sig(o)!==sig(n))log.push({at:nowStamp(),by:me.name,sid:sid,name:st?st.name:sid,d:d,
-          from:o.k+(WORKING(o.k)?"@"+unitShort(o.w):""),to:n.k+(WORKING(n.k)?"@"+unitShort(n.w):"")})}});
+          from:planLabel(o)+(WORKING(o.k)?"@"+unitShort(o.w):""),to:planLabel(n)+(WORKING(n.k)?"@"+unitShort(n.w):"")})}});
     store.set(shlogKey(curShOffice,mi.ym),log.slice(-500))}
   Object.keys(B).forEach(sid=>store.set(mshiftKey(sid,mi.ym),B[sid]));
   shDirty=false;renderPubState();
@@ -2165,7 +2196,9 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
       return (WORKING(c.k)&&!inUnits(c.w))?copyCell(c,s):{k:"休",w:homeUnitOf(s)}});
     B[s.id].forEach(c=>{if(WORKING(c.k)){const hh=cellH(c,s);hours[s.id]+=hh;
       if(c.k==="夜勤")nH[s.id]+=hh;else dH[s.id]+=hh}})});
-  const setCell=(s,d,k,w)=>{B[s.id][d-1]={k:k,w:w||homeUnitOf(s)};const hh=kindH(k,s);hours[s.id]+=hh;
+  const setCell=(s,d,k,w,half)=>{const nc={k:k,w:w||homeUnitOf(s)};
+    if(k==="半日")nc.half=half||"am"; /* 半日は既定で午前。管理者がマスで午後に変えられる */
+    B[s.id][d-1]=nc;const hh=kindH(k,s);hours[s.id]+=hh;
     if(k==="夜勤")nH[s.id]+=hh;else dH[s.id]+=hh};
   const mwOff=(s,d)=>mw[s.id][d]&&mw[s.id][d].type==="off";
   /* 空き=勤務が入っていない日。有休は「働かない日」なので自動作成では絶対に使わない */
@@ -2369,7 +2402,7 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
         if(score<bestScore){bestScore=score;best=d}}
       if(best===null)break;   // 連勤制限内で足せる日が無い→不足は警告に出る
       if(addH===8)setCell(s,best,reqKindOf(best));
-      else if(addH===4)setCell(s,best,"半日");
+      else if(addH===4)setCell(s,best,"半日",null,"am");
       else{ /* 朝だけの日勤（例: 2h）で基準ちょうどに合わせる */
         B[s.id][best-1]={k:"日勤",w:homeUnitOf(s),seg:{mh:addH,eh:0,mw:homeUnitOf(s),ew:homeUnitOf(s)}};
         hours[s.id]+=addH;dH[s.id]+=addH}}});
