@@ -209,6 +209,7 @@
   .prefSel{width:100%;margin-top:3px;font-size:9.5px;padding:2px 3px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--admin);font-weight:700;font-family:var(--f)}
   .capIn{width:100%;margin-top:3px;font-size:9.5px;padding:2px 4px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--ink);font-weight:700;font-family:var(--f)}
   .capIn::placeholder{color:var(--sub);font-weight:400}
+  .brkSel{width:auto;min-width:62px;font-size:11px;padding:3px 4px;border:1px solid var(--line2);border-radius:7px;background:var(--card);color:var(--ink);font-family:var(--f)}
   .prefSel.ovon{border-color:var(--admin);background:var(--admin-bg)}
   .pok{border:1.5px solid var(--work);background:var(--work-bg);color:var(--work);border-radius:12px;padding:10px 14px;font-size:12.5px;font-weight:700;margin:0 0 12px}
   .cw{background:var(--work-bg)!important;color:var(--work)}
@@ -373,7 +374,7 @@
       <div id="otMine"></div>
       <h2 style="margin:26px 0 12px" id="myBookTitle">今月の出勤簿</h2>
       <div class="sgrid" id="myBook"></div>
-      <p class="muted" style="font-size:11px;margin:8px 0 0">打刻から自動集計しています（様式「出勤簿」対応）。深夜は22:00〜翌5:00の時間帯。</p>
+      <p class="muted" style="font-size:11px;margin:8px 0 0">打刻から自動集計しています（様式「出勤簿」対応）。深夜は22:00〜翌5:00の時間帯。<br><b>日勤は朝と夕で「出勤→退勤」を2回</b>打刻します（間の5〜6時間は勤務時間ではありません）。<b>通し・夜勤は休憩1時間が自動で入ります</b>（休憩の欄のプルダウンで45分・30分などに変えられます）。<br>出勤は<b>開始15分前から</b>打刻でき、押した時刻が予定より早ければ<b>予定の開始時刻</b>で記録されます。退勤も予定より遅ければ<b>予定の終業時刻</b>で記録されます（残業は「時間外の申請」から）。</p>
     </main>
   </div>
 
@@ -1024,11 +1025,72 @@ function punchKey(){return "punch_"+(pSid||me.id)+"_"+(pDate||todayKey())}
 function nowHM(){const d=new Date();const p=n=>String(n).padStart(2,"0");return p(d.getHours())+":"+p(d.getMinutes())}
 function getPunches(){return store.get(punchKey(),[])}
 function setPunches(a){store.set(punchKey(),a)}
-function pstate(){const a=getPunches();const has=t=>a.some(x=>x.type===t);
-  if(!has("出勤"))return "none"; if(has("退勤"))return "done";
-  const bs=a.filter(x=>x.type==="休憩開始").length,be=a.filter(x=>x.type==="休憩終了").length;
-  return bs>be?"break":"work"}
+/* 打刻の状態。1日に「出勤→退勤」を何回でも繰り返せる（日勤は朝と夕で2回）。
+   出勤の回数 > 退勤の回数 なら勤務中。同数なら退勤済みで、また出勤できる */
+function pstate(){const a=getPunches();
+  let inN=0,outN=0,bsN=0,beN=0;
+  a.forEach(x=>{if(x.type==="出勤")inN++;else if(x.type==="退勤")outN++;
+    else if(x.type==="休憩開始")bsN++;else if(x.type==="休憩終了")beN++});
+  if(inN===0)return "none";
+  if(inN<=outN)return "done";
+  return bsN>beN?"break":"work"}
 function planLabel(c){return c?(c.k==="半日"?("半日（"+halfLabel(c)+"）"):c.k):""}
+/* 予定の勤務ブロック＝「出勤→退勤」の1組。{s:開始(分), e:終業(分)} の配列を返す。
+   日勤は朝と夕で2ブロック（間の5〜6時間は休憩ではなく勤務時間外なので、出勤・退勤を2回する）。
+   通し・半日・夜勤は1ブロック。夜勤の終業は翌5:00＝1740分で返す */
+function planBlocks(c,s,uid,wd){
+  if(!c||!WORKING(c.k))return [];
+  const b=bandsFor(uid||c.w,wd);
+  if(c.k==="日勤"){const sg=segOf(c);const out=[];
+    if(sg.mh>0)out.push({s:b.m,e:b.m+Math.round(sg.mh*60)});
+    if(sg.eh>0)out.push({s:b.e,e:b.e+Math.round(sg.eh*60)});
+    return out}
+  if(c.k==="通し")return[{s:b.t,e:b.t+540,br:60}]; /* 9時間枠から休憩1hを差引いて実働8h */
+  if(c.k==="半日"){const st=halfOf(c)==="pm"?b.e:b.m;return[{s:st,e:st+240}]}
+  if(c.k==="夜勤")return[{s:isFulltime(s)?1200:1320,e:1740,br:60}]; /* 常勤9h枠→実働8h・非常勤7h枠→実働6h */
+  return []}
+/* 打刻の時刻表記（00:00形式。翌日にまたぐ分は24時間引く） */
+function t2d(m){const x=((m%1440)+1440)%1440;
+  return String(Math.floor(x/60)).padStart(2,"0")+":"+String(x%60).padStart(2,"0")}
+/* 休憩時間（分）。通し・夜勤は1時間が自動で入り、出勤簿のプルダウンで15分刻みに変えられる。
+   保存キー nl_brk_{職員id}_{Y-M-D}。未保存なら「休憩を打刻した分」→なければ「予定の自動休憩」 */
+const BRK_OPTS=[0,15,30,45,60,75,90];
+function brkKey(sid,dk){return "brk_"+sid+"_"+dk}
+function brkSaved(sid,dk){const v=store.get(brkKey(sid,dk),null);
+  return (typeof v==="number"&&v>=0)?v:null}
+function effBreak(sid,dk,punchedBr,autoBr){const v=brkSaved(sid,dk);
+  if(v!==null)return v;
+  if(punchedBr>0)return punchedBr;
+  return autoBr||0}
+function setBrk(sid,dk,val,refresh){const n=parseInt(val,10);
+  store.set(brkKey(sid,dk),isNaN(n)?0:Math.max(0,n));
+  if(typeof refresh==="function")refresh();
+  toast("休憩を"+(isNaN(n)?0:n)+"分にしました")}
+function dkOf(mi,d){return mi.y+"-"+mi.m+"-"+d}
+/* 打刻配列を「出勤→退勤」の組に分ける（1日に何組あってもよい） */
+function punchBlocks(a){const tm=x=>{const q=String(x).split(":");return (+q[0])*60+(+q[1])};
+  const blocks=[];let cur=null,bs=null;
+  (a||[]).forEach(p=>{const t=tm(p.time);
+    if(p.type==="出勤"){if(!cur){cur={in:t,br:0,out:null,place:p.place||"",off:!!p.off};blocks.push(cur)}}
+    else if(p.type==="退勤"){if(cur){cur.out=t;cur=null}}
+    else if(p.type==="休憩開始")bs=t;
+    else if(p.type==="休憩終了"&&bs!==null){if(cur)cur.br+=t-bs;bs=null}});
+  return blocks}
+/* 組ごとの在勤時間・深夜・打刻された休憩を合計する（日をまたぐ組は+24h補正。深夜=22:00〜翌5:00）。
+   休憩の差引きは呼び出し側で effBreak() を使って行う */
+function blockTotals(blocks){
+  const ov=(s1,e1,s2,e2)=>Math.max(0,Math.min(e1,e2)-Math.max(s1,s2));
+  let span=0,night=0,br=0;
+  (blocks||[]).forEach(bk=>{if(bk.out===null||bk.out===undefined)return;
+    let o2=bk.out;if(o2<bk.in)o2+=1440;
+    span+=Math.max(0,o2-bk.in);br+=bk.br;
+    night+=ov(bk.in,o2,1320,1740)+ov(bk.in,o2,0,300)});
+  return {span:span,night:night,br:br}}
+/* 今日の予定のうち「次にやる勤務ブロック」。出勤→退勤を終えた回数ぶん進める */
+function nextBlock(){const p=todayPlan();if(!p||!WORKING(p.k))return null;
+  const bl=planBlocks(p,me,p.w,new Date().getDay());if(!bl.length)return null;
+  const doneN=getPunches().filter(x=>x.type==="退勤").length;
+  return {list:bl,idx:doneN,blk:bl[Math.min(doneN,bl.length-1)],over:doneN>=bl.length}}
 function todayPlan(){const d=new Date();const ym=d.getFullYear()+"-"+pad(d.getMonth()+1);
   if(!isPub(me.office,ym))return null; /* 公開前のシフトは職員には存在しない扱い */
   const a=store.get(mshiftKey(me.id,ym),null);if(!a)return null;
@@ -1053,20 +1115,34 @@ function kindStarts(k,s,uid,wd,half){const b=bandsFor(uid,wd);
   if(k==="半日")return[(half==="pm")?b.e:b.m]; /* 午前=朝枠・午後=夕枠 */
   if(k==="夜勤")return[isFulltime(s)?1200:1320];
   return null}
-function punchMismatch(p,place,nowMin){const rs=[];
+function punchMismatch(p,place,nowMin,blk){const rs=[];
   if(nowMin===undefined){const t=new Date();nowMin=t.getHours()*60+t.getMinutes()}
   if(p.w&&place&&place!==p.w)
     rs.push("📍 場所：予定「"+unitName(p.w)+"」→ 今回「"+unitName(place)+"」");
-  const st=kindStarts(p.k,me,p.w,new Date().getDay(),p.half);
-  if(st){const dev=Math.min.apply(null,st.map(x=>Math.abs(nowMin-x)));
+  /* 時間のズレは「これから入るブロック」の開始時刻を基準に見る */
+  const st=blk?[blk.s]:kindStarts(p.k,me,p.w,new Date().getDay(),p.half);
+  if(st&&st.length){const dev=Math.min.apply(null,st.map(x=>Math.abs(nowMin-x)));
     if(dev>60)rs.push("🕐 時間：予定の開始は "+st.map(x=>hm(x)).join(" または ")+" ごろ → 現在 "+hm(nowMin))}
   return rs}
 let pendingPlace=null;
+/* 打刻を予定の時刻に寄せる（丸め）。
+   出勤: 予定の開始より早ければ予定開始に繰り下げる（予定外の早出は勤務時間にしない）。遅ければそのまま＝遅刻として残す
+   退勤: 予定の終業より遅ければ予定終業に繰り上げる（残業は「時間外申請」で承認する運用）。早ければそのまま＝早退として残す
+   押した実際の時刻は rec.raw に残して画面に併記する */
+function snapTo(type,blk){
+  if(!blk)return null;
+  const t=new Date();const now=t.getHours()*60+t.getMinutes();
+  if(type==="出勤")return now<blk.s?blk.s:null;
+  let cmp=now;if(blk.e>1440&&now<720)cmp=now+1440; /* 夜勤の翌朝退勤 */
+  return cmp>blk.e?blk.e:null}
 function doRecordIn(place){
   pDate=todayKey(); /* 新しい勤務の開始は必ず当日から */
-  const rec={type:"出勤",time:nowHM(),edited:false,comment:"",place:place};
+  const nb=nextBlock();const sn=nb&&!nb.over?snapTo("出勤",nb.blk):null;
+  const rec={type:"出勤",time:sn!==null?t2d(sn):nowHM(),edited:false,comment:"",place:place};
+  if(sn!==null)rec.raw=nowHM();
   const a=getPunches();a.push(rec);setPunches(a);
-  resetPunchPlace();renderPunch(pDate);toast("出勤 を記録しました")}
+  resetPunchPlace();renderPunch(pDate);
+  toast(rec.raw?("出勤 を "+rec.time+" で記録しました（予定の開始時刻）"):"出勤 を記録しました")}
 function confirmIn(){document.getElementById("cnfOv").classList.add("hide");
   if(pendingPlace){doRecordIn(pendingPlace);pendingPlace=null}}
 function closeCnf(){document.getElementById("cnfOv").classList.add("hide");pendingPlace=null}
@@ -1077,13 +1153,16 @@ function punch(type){
     if(p&&!WORKING(p.k)){const label=p.k==="未定"?"勤務の予定が入っていません":"予定："+p.k;
       punchErr("⚠ 本日はシフト上の出勤日ではありません（"+label+"）。",true);return}
     if(p&&WORKING(p.k)){
-      /* 出勤打刻はシフト開始の15分前から（早すぎる打刻はブロック） */
-      const t15=new Date();const nowMin15=t15.getHours()*60+t15.getMinutes();
-      const sts15=kindStarts(p.k,me,p.w,t15.getDay(),p.half);
-      if(sts15&&sts15.length){const first=Math.min.apply(null,sts15);
-        if(nowMin15<first-15){
-          punchErr("⚠ 出勤打刻は開始15分前（"+hm(first-15)+"）からできます（今日の予定の開始は "+hm(first)+"）。",false);return}}
-      const rs=punchMismatch(p,punchPlace());
+      const nb=nextBlock();
+      /* 予定の勤務（日勤なら朝・夕の2回）を全部終えたあとの出勤はシフト外扱い */
+      if(nb&&nb.over){
+        punchErr("⚠ 今日の予定（"+planLabel(p)+"）の勤務は"+nb.list.length+"回とも終わっています。",true);return}
+      /* 出勤打刻は、そのブロックの開始15分前から（早すぎる打刻はブロック） */
+      if(nb&&nb.blk){const t15=new Date();const nowMin15=t15.getHours()*60+t15.getMinutes();
+        const ord=nb.list.length>1?((nb.idx+1)+"回目の勤務の"):"今日の予定の";
+        if(nowMin15<nb.blk.s-15){
+          punchErr("⚠ 出勤打刻は開始15分前（"+hm(nb.blk.s-15)+"）からできます（"+ord+"開始は "+hm(nb.blk.s)+"）。",false);return}}
+      const rs=punchMismatch(p,punchPlace(),undefined,nb&&nb.blk);
       if(rs.length){pendingPlace=punchPlace();
         document.getElementById("cnfBody").innerHTML=
           "<b>今日の予定：</b>"+planLabel(p)+(kindT(p.k,me,p.w,new Date().getDay(),p.half)?"（"+kindT(p.k,me,p.w,new Date().getDay(),p.half)+"）":"")+" ／ 勤務先："+unitName(p.w)
@@ -1092,9 +1171,14 @@ function punch(type){
     document.getElementById("punchErr").classList.add("hide");
     doRecordIn(punchPlace());return}
   document.getElementById("punchErr").classList.add("hide");
-  const rec={type,time:nowHM(),edited:false,comment:""};
+  /* 退勤は予定の終業時刻に丸める（それより早いときはそのまま＝早退として残す） */
+  const nbo=(type==="退勤")?nextBlock():null;
+  const sn=(nbo&&!nbo.over)?snapTo("退勤",nbo.blk):null;
+  const rec={type,time:sn!==null?t2d(sn):nowHM(),edited:false,comment:""};
+  if(sn!==null)rec.raw=nowHM();
   const a=getPunches();a.push(rec);setPunches(a);
-  renderPunch(pDate);toast(type+" を記録しました")}
+  renderPunch(pDate);
+  toast(rec.raw?(type+" を "+rec.time+" で記録しました（予定の終業時刻）"):(type+" を記録しました"))}
 function renderPubNotice(){const el=document.getElementById("pubNotice");if(!el)return;
   const n=store.get("notice_"+me.office,null);
   const seen=store.get("nseen_"+me.id,"");
@@ -1126,10 +1210,16 @@ function renderPunch(keep){
     :WORKING(p.k)?`今日の予定：<b>${planLabel(p)}</b>${kindT(p.k,me,p.w,new Date().getDay(),p.half)?" "+kindT(p.k,me,p.w,new Date().getDay(),p.half):""}<br>勤務先：${unitName(p.w)}${unitOffice(p.w)!==me.office?"・応援":""}`
     :`今日の予定：<b>${p.k}</b>`;
   /* 予定の名前。半日は「半日（午前）」のように出す */
+  /* 次にやる勤務ブロックを案内（日勤は「2回目は16:00から」のように出す） */
+  {const nb=nextBlock();const el2=document.getElementById("planTxt");
+   if(nb&&el2){
+     if(nb.over)el2.innerHTML+='<br><span style="color:var(--accent-ink)">今日の勤務（'+nb.list.length+'回）はすべて終わりました</span>';
+     else if(nb.list.length>1)el2.innerHTML+='<br><span style="color:var(--accent-ink)">→ '+(nb.idx+1)+'回目は '+hm(nb.blk.s)+'〜'+hm(nb.blk.e)+'（打刻は '+hm(nb.blk.s-15)+' から）</span>';
+     else el2.innerHTML+='<br><span style="color:var(--sub);font-size:11.5px">打刻は '+hm(nb.blk.s-15)+' から（開始15分前）</span>'}}
   const st=pstate();const map={none:["未出勤","st-none"],work:["勤務中","st-work"],break:["休憩中","st-break"],done:["退勤済み","st-done"]};
   const pill=document.getElementById("statusPill");pill.className="status "+map[st][1];
   document.getElementById("statusTxt").textContent=map[st][0];
-  document.getElementById("bIn").disabled=st!=="none";
+  document.getElementById("bIn").disabled=!(st==="none"||st==="done"); /* 1日に何回でも出勤できる（日勤は朝・夕の2回） */
   document.getElementById("bOut").disabled=st!=="work";
   document.getElementById("bBs").disabled=st!=="work";
   document.getElementById("bBe").disabled=st!=="break";
@@ -1138,6 +1228,7 @@ function renderPunch(keep){
   log.innerHTML=a.map((p,i)=>`<div class="log-row">
     <span class="tp"><span class="k ${TYPES[p.type]}"></span>${p.type}${p.off?' <span class="badge-e" style="color:var(--danger);background:var(--danger-bg)">シフト外</span>':''}${p.edited?' <span class="badge-e">修正済</span>':''}
     ${p.place?`<span class="cm">📍 ${unitName(p.place)}${unitOffice(p.place)!==me.office?'（応援）':''}</span>`:''}
+    ${p.raw?`<span class="cm">🕐 ${p.raw} に操作 → 予定の ${p.time} で記録</span>`:''}
     ${p.comment?`<span class="cm">📝 ${hesc(p.comment)}</span>`:''}
     ${p.editedBy?`<span class="cm">✎ 管理者権限の ${hesc(p.editedBy)} が修正</span>`:''}
     ${p.addedBy?`<span class="cm">＋ 管理者権限の ${hesc(p.addedBy)} が追加</span>`:''}</span>
@@ -1167,30 +1258,33 @@ function dayBook(sid,mi,d){
     if(kind==="有休")return {status:"有給",work:0,night:0,late:0,early:0};
     if(kind&&WORKING(kind)&&isPast)return {status:"欠勤",work:0,night:0,late:0,early:0};
     return null}
-  const tm=x=>{const p=x.split(":");return (+p[0])*60+(+p[1])};
-  let iN=null,oN=null,br=0,bs=null,place="",off=false;
-  a.forEach(p=>{if(p.type==="出勤"&&iN===null){iN=tm(p.time);place=p.place||"";off=!!p.off}
-    else if(p.type==="退勤")oN=tm(p.time);
-    else if(p.type==="休憩開始")bs=tm(p.time);
-    else if(p.type==="休憩終了"&&bs!==null){br+=tm(p.time)-bs;bs=null}});
-  if(iN===null)return {in:iN,out:oN,br:br,work:0,night:0,place:place,off:off,partial:true,late:0,early:0};
-  let o2=oN;if(o2!==null&&o2<iN)o2=o2+1440; /* 日またぎ */
-  const work=o2===null?0:Math.max(0,o2-iN-br);
-  let night=0;
-  if(o2!==null){
-    const ov=(s1,e1,s2,e2)=>Math.max(0,Math.min(e1,e2)-Math.max(s1,s2));
-    night=ov(iN,o2,1320,1740)+ov(iN,o2,0,300)} /* 22:00-29:00 と 0:00-5:00 */
-  /* 遅刻・早退（予定勤務の日のみ判定） */
+  /* 1日に「出勤→退勤」が複数回あってよい（日勤は朝と夕の2回）。組ごとに集計して合計する */
+  const blocks=punchBlocks(a);
+  const dk=dkOf(mi,d);
+  const pbl=(kind&&WORKING(kind))?planBlocks(cell,st,cell?cell.w:null,dow(mi,d)):[];
+  const autoBr=pbl.reduce((x,y)=>x+(y.br||0),0); /* 通し・夜勤は自動で1時間 */
+  if(!blocks.length)
+    return {in:null,out:null,ins:[],outs:[],br:0,work:0,night:0,place:"",off:false,partial:true,late:0,early:0,
+      autoBr:autoBr,brEditable:false};
+  const T=blockTotals(blocks);
+  const br=effBreak(sid,dk,T.br,autoBr);
+  const work=Math.max(0,T.span-br);
+  const ins=blocks.map(x=>x.in),outs=blocks.map(x=>x.out);
+  const partial=blocks.some(x=>x.out===null||x.out===undefined);
+  /* 遅刻＝1回目の出勤が1つ目のブロックの開始より遅い分
+     早退＝最後の退勤が、その回に対応するブロックの終業より早い分（回数が足りない分は早退にしない） */
   let late=0,early=0;
-  if(kind&&WORKING(kind)){
-    const sts=kindStarts?kindStarts(kind,st,cell?cell.w:null,dow(mi,d),cell?cell.half:null):null;
-    if(sts&&sts.length){
-      let best=sts[0];sts.forEach(x=>{if(Math.abs(iN-x)<Math.abs(iN-best))best=x});
-      late=Math.max(0,iN-best)}
-    const en=kindEnds(kind,cell?cell.w:null,dow(mi,d),cell?cell.half:null);
-    if(en!==null&&o2!==null)early=Math.max(0,en-o2)}
-  return {in:iN,out:oN,br:br,work:Math.round(work/6)/10,night:Math.round(night/6)/10,
-    place:place,off:off,partial:oN===null,late:late,early:early,status:null}}
+  if(pbl.length){
+    late=Math.max(0,ins[0]-pbl[0].s);
+    const lastOut=outs[outs.length-1];
+    if(lastOut!==null&&lastOut!==undefined){
+      const bi=Math.min(blocks.length-1,pbl.length-1);const le=pbl[bi].e;
+      let lo=lastOut;if(le>1440&&lo<720)lo+=1440;
+      early=Math.max(0,le-lo)}}
+  return {in:ins[0],out:outs[outs.length-1],ins:ins,outs:outs,br:br,
+    work:Math.round(work/6)/10,night:Math.round(T.night/6)/10,
+    place:blocks[0].place,off:blocks[0].off,partial:partial,late:late,early:early,status:null,
+    autoBr:autoBr,brEditable:autoBr>0||br>0,punchedBr:T.br}}
 function hm(m){if(m===null||m===undefined)return "";return String(Math.floor(m/60))+":"+String(m%60).padStart(2,"0")}
 function fyPaid(sid){const t=new Date();const fy=t.getMonth()+1>=4?t.getFullYear():t.getFullYear()-1;
   let c=0;for(let m=0;m<12;m++){const y=fy+((4+m)>12?1:0);const mm=((4+m-1)%12)+1;
@@ -1219,13 +1313,22 @@ function buildBook(sid,mi,editable){
       if(b.late>0)stBadges+='<span class="badge-e">遅刻'+b.late+'分</span>';
       if(b.early>0)stBadges+=' <span class="badge-e">早退'+b.early+'分</span>'}
     if(otApproved[d])stBadges+=' <span class="badge-e" style="color:var(--admin);background:var(--admin-bg)" title="承認済みの時間外">残業'+otApproved[d]+'h</span>';
+    /* 休憩は通し・夜勤なら自動で1時間入り、プルダウンで15分刻みに変えられる */
+    let brCell="";
+    if(b&&b.brEditable){
+      const dk=dkOf(mi,d);
+      const opts=BRK_OPTS.indexOf(b.br)>=0?BRK_OPTS:BRK_OPTS.concat([b.br]).sort((x,y)=>x-y);
+      brCell='<select class="brkSel" onclick="event.stopPropagation()" title="休憩時間（変えると実働に反映されます）"'
+        +' onchange="event.stopPropagation();setBrk(\''+sid+'\',\''+dk+'\',this.value,'+(editable?'renderAdmBook':'renderMyBook')+')">'
+        +opts.map(v=>'<option value="'+v+'"'+(v===b.br?' selected':'')+'>'+v+'分</option>').join("")+'</select>';}
+    else if(b&&b.br)brCell=hm(b.br);
     rows+=`<tr ${editable?`onclick="openApDay(${d})" style="cursor:pointer" title="タップして修正"`:''}>
       <td class="tot" style="text-align:center"><span class="${cls}" style="font-weight:700">${d}</span> <span style="font-size:9px">${WD[w]}</span></td>
       <td class="tot" style="text-align:center;white-space:normal;min-width:56px">${stBadges}</td>
       <td class="tot">${b&&b.place?unitName(b.place):""}${b&&b.off?' <span class="badge-e" style="color:var(--danger);background:var(--danger-bg)">外</span>':''}</td>
-      <td class="tot" style="text-align:center">${b&&b.in!=null?hm(b.in):""}</td>
-      <td class="tot" style="text-align:center">${b?(b.partial?"—":(b.out!=null?hm(b.out):"")):""}</td>
-      <td class="tot" style="text-align:center">${b&&b.br?hm(b.br):""}</td>
+      <td class="tot" style="text-align:center;white-space:normal">${(b&&b.ins&&b.ins.length)?b.ins.map(x=>hm(x)).join("<br>"):""}</td>
+      <td class="tot" style="text-align:center;white-space:normal">${(b&&b.outs&&b.outs.length)?b.outs.map(x=>(x==null||x===undefined)?"—":hm(x)).join("<br>"):""}</td>
+      <td class="tot" style="text-align:center">${brCell}</td>
       <td class="tot" style="text-align:right;font-weight:700">${b&&b.work?b.work:""}</td>
       <td class="tot" style="text-align:right">${b&&b.night?b.night:""}</td></tr>`}
   workT=Math.round(workT*10)/10;nightT=Math.round(nightT*10)/10;
@@ -1781,6 +1884,7 @@ function renderApDay(){
   log.innerHTML=a.map((p,i)=>`<div class="log-row">
     <span class="tp"><span class="k ${TYPES[p.type]||''}"></span>${p.type}${p.off?' <span class="badge-e" style="color:var(--danger);background:var(--danger-bg)">シフト外</span>':''}${p.edited?' <span class="badge-e">修正済</span>':''}
     ${p.place?`<span class="cm">📍 ${unitName(p.place)}${unitOffice(p.place)!==st.office?'（応援）':''}</span>`:''}
+    ${p.raw?`<span class="cm">🕐 ${p.raw} に操作 → 予定の ${p.time} で記録</span>`:''}
     ${p.comment?`<span class="cm">📝 ${hesc(p.comment)}</span>`:''}
     ${p.editedBy?`<span class="cm">✎ 管理者権限の ${hesc(p.editedBy)} が修正</span>`:''}
     ${p.addedBy?`<span class="cm">＋ 管理者権限の ${hesc(p.addedBy)} が追加</span>`:''}</span>
@@ -2486,16 +2590,8 @@ function renderPrevStd(){const el=document.getElementById("prevStd");if(!el)retu
           :'<span class="badge-e" style="color:var(--danger);background:var(--danger-bg)">✕ 不足 '+(Math.round((r.need-r.got)*10)/10)+'</span>')+'</td></tr>'}).join("")
     +'</table>'}
 function actualHours(sid,mi,d){
-  const a=store.get("punch_"+sid+"_"+mi.y+"-"+mi.m+"-"+d,[]);if(!a||!a.length)return 0;
-  const t=x=>{const p=x.split(":");return (+p[0])*60+(+p[1])};
-  let iN=null,oN=null,br=0,bs=null;
-  a.forEach(p=>{if(p.type==="出勤"&&iN===null)iN=t(p.time);
-    else if(p.type==="退勤")oN=t(p.time);
-    else if(p.type==="休憩開始")bs=t(p.time);
-    else if(p.type==="休憩終了"&&bs!==null){br+=t(p.time)-bs;bs=null}});
-  if(iN===null||oN===null)return 0;
-  let m=oN-iN-br;if(m<0)m+=1440; /* 日またぎ夜勤の簡易対応 */
-  return Math.round(m/6)/10}
+  const b=dayBook(sid,mi,d);
+  return (b&&b.work>0)?b.work:0}
 function previewRows(){const mi=monthInfo(admOff);
   return officeStaff(curShOffice).map((s,i)=>{
     const plan=store.get(mshiftKey(s.id,mi.ym),null);
