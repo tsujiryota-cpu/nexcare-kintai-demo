@@ -712,7 +712,7 @@
 <div id="mwOv" class="ov hide">
   <div class="sheet">
     <h3 id="mwTitle">出勤・休みの条件一覧</h3>
-    <p class="sub">「この日は必ず出勤」「この日は必ず休み」という確定予定です。自動作成のとき最優先されます。</p>
+    <p class="sub">「この日は必ず出勤」「この日は必ず休み」という確定予定です。自動作成のとき最優先されます。<br><b>兼務でこの事業所の建物に入れる他事業所の職員も選べます</b>（その職員は、本務の勤務が入っていない日だけこの事業所に入ります）。</p>
     <div class="field"><label>職員</label><select id="mwStaff"></select></div>
     <div style="display:flex;gap:8px" class="field">
       <div style="flex:1"><label style="display:block;font-size:12.5px;font-weight:600;color:var(--sub);margin-bottom:6px">日付</label><input type="date" id="mwDate"></div>
@@ -885,6 +885,12 @@ function officeUnits(oid){return UNITS.filter(u=>u.office===oid&&!u.closed)} /* 
 /* 世話人か生活支援員が、その事業所の建物で何人勤務しているか。
    グリッドの人数行・警告・自動作成で判定がずれないよう、必ずこの関数を通す（応援・兼務・朝夕分割も対象） */
 function isCare(s){return hasRole(s,"世話人")||hasRole(s,"生活支援員")}
+/* 「兼務できる建物」にこの事業所の建物を登録している他事業所の職員か */
+function isGuestOf(s,oid){const us=officeUnits(oid);
+  return s.office!==oid&&(s.help||[]).some(uid=>us.some(u=>u.id===uid))}
+function officeGuests(oid){return loginSort(getStaff().filter(s=>isGuestOf(s,oid)))}
+/* 希望休・出勤条件をこの事業所で扱う対象＝自事業所の職員＋兼務の職員 */
+function officeStaffWithGuests(oid){return loginSort(officeStaff(oid)).concat(officeGuests(oid))}
 function careCountAt(oid,d,arrOf){const us=officeUnits(oid);
   return getStaff().filter(s=>{if(!isCare(s))return false;
     const a=arrOf(s);const c=a&&a[d-1];
@@ -2059,13 +2065,14 @@ function toggleKibClose(){const nmi=kibouTargetMi();const r=getKibClose(curShOff
 let reqOpen=true;
 function rqToggle(){reqOpen=!reqOpen;renderReqPanel()}
 function renderReqPanel(){const mi=monthInfo(admOff);const rows=[];
-  officeStaff(curShOffice).forEach(s=>{
-    getKibou(s.id).forEach(k=>{if(k.date&&k.date.slice(0,7)===mi.ym)rows.push({d:k.date,s,t:k.avail?"av":"kib",txt:k.type+(k.note?"・"+k.note:"")})});
-    getMW(s.id).forEach(x=>{if(x.date&&x.date.slice(0,7)===mi.ym)rows.push({d:x.date,s,t:x.type==="off"?"mwo":"mw",txt:x.reason})})});
+  /* 兼務でこの事業所に入れる他事業所の職員の希望休・条件もここに出す */
+  officeStaffWithGuests(curShOffice).forEach(s=>{const g=isGuestOf(s,curShOffice);
+    getKibou(s.id).forEach(k=>{if(k.date&&k.date.slice(0,7)===mi.ym)rows.push({d:k.date,s,g,t:k.avail?"av":"kib",txt:k.type+(k.note?"・"+k.note:"")})});
+    getMW(s.id).forEach(x=>{if(x.date&&x.date.slice(0,7)===mi.ym)rows.push({d:x.date,s,g,t:x.type==="off"?"mwo":"mw",txt:x.reason})})});
   rows.sort((a,b)=>a.d<b.d?-1:(a.d>b.d?1:0));
   const body=rows.length?rows.map(r=>`<div class="rq"><span class="rd">${jdate(r.d)}</span>
       <span class="${r.t==='kib'?'rq-k':r.t==='av'?'rq-a':r.t==='mwo'?'rq-o':'rq-m'}">${r.t==='kib'?'休希望':r.t==='av'?'勤務可':r.t==='mwo'?'休み条件':'出勤条件'}</span>
-      <b>${hesc(r.s.name)}</b><span class="rt">${hesc(r.txt)}</span></div>`).join("")
+      <b>${hesc(r.s.name)}</b>${r.g?' <span class="badge-e" style="color:var(--help);background:var(--help-bg)">兼務</span>':""}<span class="rt">${hesc(r.txt)}</span></div>`).join("")
     :'<div class="rq" style="border-top:none;color:var(--sub)">この月の希望休・出勤条件はまだありません。</div>';
   document.getElementById("reqPanel").innerHTML=
     `<div class="rqwrap"><div class="rqhd" onclick="rqToggle()">${reqOpen?'▾':'▸'} この月の希望休・出勤条件
@@ -2337,9 +2344,17 @@ function autoGen(){shDirty=true;const mi=monthInfo(admOff);const staffL=officeSt
   // 日中の必要区分: 平日=日勤（朝6-10/夕16-20）・土日=通し（9-18）※手順1でも使うためここで定義
   const reqKindOf=d=>{const w=dow(mi,d);return (w===0||w===6)?"通し":"日勤"};
   // 1) 条件の反映：「必ず出勤」は出勤に（曜日に応じ日勤/通し・夜勤専門は夜勤）、「必ず休み」は休のまま固定
-  staffL.forEach(s=>{if(shPrefOf(s.id,mi.ym)==="none")return; // 勤務なしの職員には入れない
-    for(let d=1;d<=mi.days;d++){if(mw[s.id][d]&&mw[s.id][d].type!=="off"&&B[s.id][d-1].k!=="有休")
-    setCell(s,d,(hasRole(s,"夜間支援従事者")&&rolesOf(s).length===1)?"夜勤":reqKindOf(d))}});
+  // 自事業所の職員＋兼務でこの事業所の建物に入れる他事業所の職員。
+  // 兼務者は「本務の勤務が入っていない日」だけ、登録のある建物に入れる（本務の勤務は動かさない）
+  ALL.forEach(s=>{if(shPrefOf(s.id,mi.ym)==="none")return; // 勤務なしの職員には入れない
+    const guest=guestIds.has(s.id);
+    const gUnit=guest?(helpUnitsOf(s).filter(uid=>inUnits(uid))[0]||null):null;
+    if(guest&&!gUnit)return;
+    for(let d=1;d<=mi.days;d++){
+      if(!(mw[s.id][d]&&mw[s.id][d].type!=="off"))continue;
+      if(B[s.id][d-1].k==="有休")continue;
+      if(guest&&WORKING(B[s.id][d-1].k))continue;
+      setCell(s,d,(hasRole(s,"夜間支援従事者")&&rolesOf(s).length===1)?"夜勤":reqKindOf(d),guest?gUnit:undefined)}});
   // 1.5) 公休の均等配置：各職員の「休みの目安日」を月内に等間隔で仮置きし、
   //      割当はその日を避ける（人が足りない日だけ使う）→ 公休が偏らない
   const plannedRest={};
@@ -2661,7 +2676,12 @@ function downloadPreviewCSV(){const b=buildPreviewCSV();
 function mwReasonUI(){const sel=document.getElementById("mwReasonSel");
   document.getElementById("mwReasonTxt").classList.toggle("hide",sel.value.indexOf("その他")!==0)}
 function openMW(){const mi=monthInfo(admOff);const sel=document.getElementById("mwStaff");
-  sel.innerHTML=officeStaff(curShOffice).map(s=>`<option value="${s.id}">${hesc(s.name)}（${unitName(s.unit)}）</option>`).join("");
+  /* 自事業所の職員と、兼務でこの事業所の建物に入れる他事業所の職員を分けて出す */
+  const own=loginSort(officeStaff(curShOffice));const gs=officeGuests(curShOffice);
+  sel.innerHTML=`<optgroup label="${hesc(officeName(curShOffice))}の職員">`
+    +own.map(s=>`<option value="${s.id}">${hesc(s.name)}（${unitName(s.unit)}）</option>`).join("")+`</optgroup>`
+    +(gs.length?`<optgroup label="🤝 兼務（他事業所の所属）">`
+      +gs.map(s=>`<option value="${s.id}">${hesc(s.name)}（${hesc(officeName(s.office))}・${unitName(s.unit)}）</option>`).join("")+`</optgroup>`:"");
   document.getElementById("mwTitle").textContent="出勤・休みの条件一覧 ― "+officeName(curShOffice);
   document.getElementById("mwListTitle").textContent=mi.label+"の条件";
   document.getElementById("mwDate").value=mi.ym+"-01";
@@ -2683,12 +2703,13 @@ function addMW(){const sid=document.getElementById("mwStaff").value;
   renderMWList();toast(type==="off"?"休みの条件を追加しました":"出勤条件を追加しました")}
 function delMW(sid,i){const a=getMW(sid);a.splice(i,1);store.set(mwKey(sid),a);renderMWList()}
 function renderMWList(){const mi=monthInfo(admOff);const rows=[];
-  officeStaff(curShOffice).forEach(s=>{getMW(s.id).forEach((x,i)=>{
-    if(x.date&&x.date.slice(0,7)===mi.ym)rows.push({s,x,i})})});
+  officeStaffWithGuests(curShOffice).forEach(s=>{const g=isGuestOf(s,curShOffice);
+    getMW(s.id).forEach((x,i)=>{
+    if(x.date&&x.date.slice(0,7)===mi.ym)rows.push({s,x,i,g})})});
   rows.sort((a,b)=>a.x.date<b.x.date?-1:(a.x.date>b.x.date?1:0));
   const html=rows.map(r=>`<div class="mw-row"><span class="d">${jdate(r.x.date)}</span>
       <span class="${r.x.type==='off'?'rq-o':'rq-m'}">${r.x.type==='off'?'休み':'出勤'}</span>
-      <span class="r"><b>${hesc(r.s.name)}</b>（${unitName(r.s.unit)}）・ ${hesc(r.x.reason)}</span>
+      <span class="r"><b>${hesc(r.s.name)}</b>（${r.g?hesc(officeName(r.s.office))+"・":""}${unitName(r.s.unit)}）${r.g?' <span class="badge-e" style="color:var(--help);background:var(--help-bg)">兼務</span>':""}・ ${hesc(r.x.reason)}</span>
       <button class="edit" onclick="delMW('${r.s.id}',${r.i})" aria-label="削除">🗑</button></div>`).join("");
   document.getElementById("mwList").innerHTML=html||'<div class="empty">この月の登録はまだありません。</div>'}
 
