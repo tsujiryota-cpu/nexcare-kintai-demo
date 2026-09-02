@@ -1264,12 +1264,13 @@ function dayBook(sid,mi,d){
   const pbl=(kind&&WORKING(kind))?planBlocks(cell,st,cell?cell.w:null,dow(mi,d)):[];
   const autoBr=pbl.reduce((x,y)=>x+(y.br||0),0); /* 通し・夜勤は自動で1時間 */
   if(!blocks.length)
-    return {in:null,out:null,ins:[],outs:[],br:0,work:0,night:0,place:"",off:false,partial:true,late:0,early:0,
+    return {in:null,out:null,ins:[],outs:[],places:[],offs:[],br:0,work:0,night:0,place:"",off:false,partial:true,late:0,early:0,
       autoBr:autoBr,brEditable:false};
   const T=blockTotals(blocks);
   const br=effBreak(sid,dk,T.br,autoBr);
   const work=Math.max(0,T.span-br);
   const ins=blocks.map(x=>x.in),outs=blocks.map(x=>x.out);
+  const places=blocks.map(x=>x.place||""),offs=blocks.map(x=>!!x.off);
   const partial=blocks.some(x=>x.out===null||x.out===undefined);
   /* 遅刻＝1回目の出勤が1つ目のブロックの開始より遅い分
      早退＝最後の退勤が、その回に対応するブロックの終業より早い分（回数が足りない分は早退にしない） */
@@ -1283,7 +1284,8 @@ function dayBook(sid,mi,d){
       early=Math.max(0,le-lo)}}
   return {in:ins[0],out:outs[outs.length-1],ins:ins,outs:outs,br:br,
     work:Math.round(work/6)/10,night:Math.round(T.night/6)/10,
-    place:blocks[0].place,off:blocks[0].off,partial:partial,late:late,early:early,status:null,
+    place:blocks[0].place,off:blocks[0].off,places:places,offs:offs,
+    partial:partial,late:late,early:early,status:null,
     autoBr:autoBr,brEditable:autoBr>0||br>0,punchedBr:T.br}}
 function hm(m){if(m===null||m===undefined)return "";return String(Math.floor(m/60))+":"+String(m%60).padStart(2,"0")}
 function fyPaid(sid){const t=new Date();const fy=t.getMonth()+1>=4?t.getFullYear():t.getFullYear()-1;
@@ -1325,7 +1327,9 @@ function buildBook(sid,mi,editable){
     rows+=`<tr ${editable?`onclick="openApDay(${d})" style="cursor:pointer" title="タップして修正"`:''}>
       <td class="tot" style="text-align:center"><span class="${cls}" style="font-weight:700">${d}</span> <span style="font-size:9px">${WD[w]}</span></td>
       <td class="tot" style="text-align:center;white-space:normal;min-width:56px">${stBadges}</td>
-      <td class="tot">${b&&b.place?unitName(b.place):""}${b&&b.off?' <span class="badge-e" style="color:var(--danger);background:var(--danger-bg)">外</span>':''}</td>
+      <td class="tot" style="white-space:normal">${(b&&b.places&&b.places.length)
+        ? b.places.map((w2,i2)=>(w2?unitName(w2):"—")+(b.offs[i2]?' <span class="badge-e" style="color:var(--danger);background:var(--danger-bg)">外</span>':"")).join("<br>")
+        : (b&&b.place?unitName(b.place):"")}</td>
       <td class="tot" style="text-align:center;white-space:normal">${(b&&b.ins&&b.ins.length)?b.ins.map(x=>hm(x)).join("<br>"):""}</td>
       <td class="tot" style="text-align:center;white-space:normal">${(b&&b.outs&&b.outs.length)?b.outs.map(x=>(x==null||x===undefined)?"—":hm(x)).join("<br>"):""}</td>
       <td class="tot" style="text-align:center">${brCell}</td>
